@@ -726,7 +726,7 @@ $('#submit-button-publish-question-for-release, #submit-button-draft-question-fo
             // kalau ada total weight
             calculateTotal?.();
             formQuestionForRelease();
-            paginateContentForRelease();
+            paginateQuestionForRelease();
         },
         error: function (xhr) {
 

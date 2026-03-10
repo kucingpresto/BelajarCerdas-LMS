@@ -297,11 +297,11 @@ class TeacherQuestionBankReleaseController extends Controller
         if ($selectedClass) {
             $query = $query->filter(function ($item) use ($selectedClass) {
 
-                if (!$item || !$item->SchoolAssessment->SchoolClass->kelas_id) {
+                if (!$item || !$item->SchoolAssessment->SchoolClass->class_name) {
                     return false;
                 }
 
-                return $this->extractClassLevel($item->SchoolAssessment->SchoolClass->kelas_id) == $selectedClass;
+                return $this->extractClassLevel($item->SchoolAssessment->SchoolClass->class_name) == $selectedClass;
             });
         }
 
@@ -316,9 +316,6 @@ class TeacherQuestionBankReleaseController extends Controller
 
         // GROUP BY school_assessment_id
         $schoolAssessmentQuestion = $query->groupBy('school_assessment_id');
-
-        // hitung jumlah soal per groupBy
-        $countQuestion = $schoolAssessmentQuestion->flatten()->count();
 
         // manual pagination karena sudah menjadi collection
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
@@ -342,7 +339,6 @@ class TeacherQuestionBankReleaseController extends Controller
             'selectedClass' => $selectedClass,
             'className'     => $classLevels,
             'schoolAssessmentType' => $schoolAssessmentType,
-            'countQuestion' => $countQuestion,
             'teacherReviewQuestionBankForRelease' => '/lms/:role/:schoolName/:schoolId/teacher-question-bank-for-release/review/:assessmentQuestionId'
         ]);
     }

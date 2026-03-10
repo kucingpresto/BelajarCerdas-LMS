@@ -100,7 +100,7 @@ function paginateQuestionForRelease(search_year = null, search_class = null, sea
                             <td class="border border-gray-300 px-3 py-2 text-center">${first.school_assessment?.title ?? '-'}</td>
                             <td class="border border-gray-300 px-3 py-2 text-center">${first.school_assessment?.semester ?? '-'}</td>
                             <td class="border border-gray-300 px-3 py-2 text-center">${startDate} - ${endDate}</td>
-                            <td class="border border-gray-300 px-3 py-2 text-center">${response.countQuestion ?? '-'}</td>
+                            <td class="border border-gray-300 px-3 py-2 text-center">${item.length}</td>
                             <td class="border border-gray-300 px-3 py-2 text-center">
                                 <div class="dropdown dropdown-left">
                                     <div tabindex="0" role="button">
