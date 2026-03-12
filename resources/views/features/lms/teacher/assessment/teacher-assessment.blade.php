@@ -376,6 +376,30 @@
                                                 placeholder="Tuliskan instruksi..."></textarea>
                                             <span id="error-assessment_instruction" class="text-red-500 text-xs font-semibold"></span>
                                         </div>
+
+                                        <!-- Result Settings -->
+                                        <div class="border-t border-gray-200 pt-6">
+
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-3">
+                                                Result Settings
+                                            </h3>
+
+                                            <label class="flex items-start gap-3 cursor-pointer">
+                                                <input type="checkbox" name="show_project_score" class="mt-1">
+
+                                                <div>
+                                                    <p class="text-sm font-medium">
+                                                        Show Score After Submit
+                                                    </p>
+
+                                                    <p class="text-xs text-gray-500">
+                                                        Nilai akan langsung ditampilkan setelah siswa mengirim jawaban.
+                                                    </p>
+                                                </div>
+
+                                            </label>
+
+                                        </div>
                                     </div>
                                 </div>
 
@@ -425,6 +449,7 @@
                                             <h3 class="font-semibold mb-2">Project Settings</h3>
                                             <p><strong>Filename:</strong> <span id="review-filename"></span></p>
                                             <p><strong>Instruction:</strong> <span id="review-instruction"></span></p>
+                                            <p><strong>Show Score After Submit:</strong> <span id="review-project-show-score"></span></p>
                                         </div>
 
                                     </div>

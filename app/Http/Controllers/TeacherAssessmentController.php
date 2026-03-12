@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\AssessmentMode;
-use App\Models\Kelas;
 use App\Models\SchoolAssessment;
 use App\Models\SchoolAssessmentType;
 use App\Models\SchoolPartner;
@@ -13,9 +12,7 @@ use App\Services\LMS\AssessmentManagement\Teacher\LmsReviewFileService;
 use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class TeacherAssessmentController extends Controller
 {
@@ -280,6 +277,7 @@ class TeacherAssessmentController extends Controller
                 $data['assessment_value_file'] = $filename;
                 $data['assessment_original_filename'] = $file->getClientOriginalName();
                 $data['assessment_instruction'] = $request->assessment_instruction;
+                $data['show_score'] = $request->boolean('show_project_score');
             } else {
                 $data['shuffle_questions'] = $request->boolean('shuffle_questions');
                 $data['shuffle_options'] = $request->boolean('shuffle_options');
@@ -482,6 +480,7 @@ class TeacherAssessmentController extends Controller
                 $data['assessment_original_filename'] = $file->getClientOriginalName();
             }
             $data['assessment_instruction'] = $request->assessment_instruction;
+            $data['show_score'] = $request->boolean('show_score');
         } else {
             $data['shuffle_questions'] = $request->boolean('shuffle_questions');
             $data['shuffle_options'] = $request->boolean('shuffle_options');

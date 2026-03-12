@@ -136,6 +136,31 @@
                                         placeholder="Tuliskan instruksi..."></textarea>
                                     <span id="error-assessment_instruction" class="text-red-500 text-xs font-semibold"></span>
                                 </div>
+
+                                <!-- RESULT SETTINGS -->
+                                <div>
+                                    <div class="grid grid-cols1 lg:grid-cols-2 gap-8 bg-white p-6 rounded-2xl shadow-sm border border-gray-300 space-y-6">
+                                        <div>
+
+                                            <h3 class="text-sm font-semibold text-gray-700 mb-3">
+                                                Result Settings
+                                            </h3>
+
+                                            <div class="space-y-4">
+
+                                                <label class="flex items-start gap-3 cursor-pointer">
+                                                    <input type="checkbox" id="edit-show-score" name="show_score" class="mt-1">
+                                                    <div>
+                                                        <p class="text-sm font-medium">Show Score After Submit</p>
+                                                        <p class="text-xs text-gray-500">
+                                                            Nilai akan langsung ditampilkan setelah siswa mengirim jawaban.
+                                                        </p>
+                                                    </div>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
             

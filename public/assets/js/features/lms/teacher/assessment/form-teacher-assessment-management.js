@@ -192,6 +192,8 @@ function setupReview() {
 
         document.getElementById('review-show-score').textContent = form.querySelector('input[name="show_score"]')?.checked ? 'Ya' : 'Tidak';
 
+        document.getElementById('review-project-show-score').textContent = form.querySelector('input[name="show_project_score"]')?.checked ? 'Ya' : 'Tidak';
+
         document.getElementById('review-show-answer').textContent = form.querySelector('input[name="show_answer"]')?.checked ? 'Ya' : 'Tidak';
 
         // Project file
