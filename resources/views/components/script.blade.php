@@ -8,7 +8,7 @@
 
     <title id="title-icon-web" data-school-name="{{ Auth::check() ? (Auth::user()->StudentProfile?->SchoolPartner?->nama_sekolah ?? Auth::user()->SchoolStaffProfile?->SchoolPartner?->nama_sekolah) 
         : null }}"></title>
-    <link rel="shortcut icon" type="image/png" href="{{ asset('assets/images/favicon/favicon.png') }}">
+    <link rel="shortcut icon" type="image/svg" href="{{ asset('assets/images/favicon/favicon.svg') }}">
 
     <!-- Your compiled app.css (includes Tailwind, DaisyUI if configured) -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
