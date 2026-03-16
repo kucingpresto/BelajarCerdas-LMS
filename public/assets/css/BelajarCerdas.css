@@ -147,3 +147,23 @@ body {
     color: #ffffff;
     font-weight: bold;
 }
+
+.question-bank-preview ul {
+    list-style: disc !important;
+    padding-left: 15px;
+}
+
+.question-bank-preview ol {
+    list-style: decimal !important;
+    padding-left: 15px;
+}
+
+.list-style ul {
+    list-style: disc !important;
+    padding-left: 15px;
+}
+
+.list-style ol {
+    list-style: decimal !important;
+    padding-left: 15px;
+}
