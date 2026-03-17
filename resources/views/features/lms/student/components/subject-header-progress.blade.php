@@ -1,5 +1,3 @@
-<x-script></x-script>
-
 <div id="container" data-role="{{ $role }}" data-school-name="{{ $schoolName }}" data-school-id="{{ $schoolId }}" data-curriculum-id="{{ $curriculumId }}" data-mapel-id="{{ $mapelId }}">
     <div id="container-subject-header"></div>
 </div>
