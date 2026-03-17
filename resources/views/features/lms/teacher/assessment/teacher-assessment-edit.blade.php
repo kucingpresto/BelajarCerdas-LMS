@@ -11,7 +11,7 @@
             <div id="alert-success-edit-assessment"></div>
 
             <div id="container-edit-assessment" data-role="{{ $role }}" data-school-name="{{ $schoolName }}" data-school-id="{{ $schoolId }}" data-assessment-id="{{ $assessment->id }}"
-                    data-semester="{{ $assessment->semester }}" data-title="{{ $assessment->title }}" data-description="{{ $assessment->description }}" data-duration="{{ $assessment->duration }}"
+                    data-semester="{{ $assessment->semester }}" data-title="{{ $assessment->title }}" data-duration="{{ $assessment->duration }}"
                     data-start-date="{{ $assessment->start_date }}" data-end-date="{{ $assessment->end_date }}" data-instruction="{{ $assessment->assessment_instruction }}" 
                     data-shuffle-questions="{{ $assessment->shuffle_questions }}" data-shuffle-options="{{ $assessment->shuffle_options }}" 
                     data-show-score="{{ $assessment->show_score }}" data-show-answer="{{ $assessment->show_answer }}"
@@ -49,15 +49,17 @@
                                 class="mt-2 w-full border border-gray-300 rounded-lg px-4 h-12 outline-none text-sm">
                             <span id="error-title" class="text-red-500 text-xs font-semibold"></span>
                         </div>
-            
-                        <!-- Description -->
-                        <div>
-                            <label class="block text-sm font-medium">
-                                Description (Optional)
+
+                        <!-- Instruction textarea -->
+                        <div class="w-full">
+                            <label class="block text-sm font-semibold mb-2">
+                                Instructions
+                                <sup class="text-red-500">&#42;</sup>
                             </label>
-                            <textarea id="edit-description" name="description" rows="3" placeholder="Masukkan Deskripsi Asesmen" 
-                                class="mt-2 w-full border border-gray-300 rounded-lg p-4 outline-none text-sm resize-none"></textarea>
-                            <span id="error-description" class="text-red-500 text-xs mt-1 font-bold"></span>
+
+                            <textarea id="edit-assessment-instruction" name="assessment_instruction" rows="5" class="w-full border border-gray-300 rounded-lg p-4 text-sm resize-none outline-none"
+                                placeholder="Tuliskan instruksi..."></textarea>
+                            <span id="error-assessment_instruction" class="text-red-500 text-xs font-semibold"></span>
                         </div>
                     </div>
             
@@ -123,19 +125,6 @@
                             <div class="flex flex-col gap-6">
                                 <!-- File upload / preview -->
                                 <div id="dynamic-form" class="w-full xl:w-2/4"></div>
-
-                                <!-- Instruction textarea -->
-                                <div class="w-full xl:w-2/4">
-                                    <label class="block text-sm font-semibold mb-2">
-                                        Instructions
-                                        <sup class="text-red-500">&#42;</sup>
-                                    </label>
-
-                                    <textarea id="edit-assessment-instruction" name="assessment_instruction" rows="5"
-                                        class="w-full border border-gray-300 rounded-lg p-4 text-sm resize-none outline-none"
-                                        placeholder="Tuliskan instruksi..."></textarea>
-                                    <span id="error-assessment_instruction" class="text-red-500 text-xs font-semibold"></span>
-                                </div>
 
                                 <!-- RESULT SETTINGS -->
                                 <div>

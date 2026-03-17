@@ -19,14 +19,13 @@ return new class extends Migration
             $table->foreignId('mapel_id')->constrained('mapels');
             $table->foreignId('assessment_type_id')->constrained('school_assessment_types');
             $table->string('title');
-            $table->text('description')->nullable();
+            $table->text('assessment_instruction')->nullable();
             $table->integer('duration')->nullable();
             $table->unsignedTinyInteger('semester');
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->string('assessment_value_file')->nullable();
             $table->string('assessment_original_filename')->nullable();
-            $table->text('assessment_instruction')->nullable();
             $table->boolean('shuffle_questions')->default(false);
             $table->boolean('shuffle_options')->default(false);
             $table->boolean('show_score')->default(false);

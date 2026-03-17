@@ -179,10 +179,17 @@
         
                                             </div>
         
+                                            <!-- Instruction -->
                                             <div class="mt-4">
-                                                <label class="block text-sm font-medium">Description (Optional)</label>
-                                                <textarea name="description" rows="4" class="mt-2 w-full border border-gray-300 rounded-lg p-4 outline-none text-sm item resize-none"
-                                                    placeholder="Masukkan Deskripsi Asesmen"></textarea>
+                                                <label class="block text-sm mb-2">
+                                                    Instructions
+                                                    <sup class="text-red-500">&#42;</sup>
+                                                </label>
+
+                                                <textarea name="assessment_instruction" rows="5"
+                                                    class="w-full border border-gray-300 rounded-lg p-4 text-sm resize-none outline-none"
+                                                    placeholder="Tuliskan instruksi..."></textarea>
+                                                <span id="error-assessment_instruction" class="text-red-500 text-xs font-semibold"></span>
                                             </div>
                                         </div>
 
@@ -364,19 +371,6 @@
                                             </div>
                                         </div>
 
-                                        <!-- Instruction -->
-                                        <div>
-                                            <label class="block text-sm font-semibold mb-2">
-                                                Instructions
-                                                <sup class="text-red-500">&#42;</sup>
-                                            </label>
-
-                                            <textarea name="assessment_instruction" rows="5"
-                                                class="w-full border border-gray-300 rounded-lg p-4 text-sm resize-none outline-none"
-                                                placeholder="Tuliskan instruksi..."></textarea>
-                                            <span id="error-assessment_instruction" class="text-red-500 text-xs font-semibold"></span>
-                                        </div>
-
                                         <!-- Result Settings -->
                                         <div class="border-t border-gray-200 pt-6">
 
@@ -429,7 +423,7 @@
                                             <h3 class="font-semibold mb-2">Assessment Details</h3>
                                             <p><strong>Judul:</strong> <span id="review-title"></span></p>
                                             <p><strong>Tipe Asesmen:</strong> <span id="review-type"></span></p>
-                                            <p><strong>Deskripsi:</strong> <span id="review-description"></span></p>
+                                            <p><strong>Instruction:</strong> <span id="review-instruction"></span></p>
                                             <p id="review-duration-wrapper">
                                                 <strong>Durasi:</strong> <span id="review-duration"></span> Menit
                                             </p>
@@ -448,7 +442,6 @@
                                         <div id="project-review-extra" class="p-4 bg-gray-100 rounded-xl hidden">
                                             <h3 class="font-semibold mb-2">Project Settings</h3>
                                             <p><strong>Filename:</strong> <span id="review-filename"></span></p>
-                                            <p><strong>Instruction:</strong> <span id="review-instruction"></span></p>
                                             <p><strong>Show Score After Submit:</strong> <span id="review-project-show-score"></span></p>
                                         </div>
 
@@ -559,213 +552,6 @@
                     </div>
                 </section>
 
-                <!-- Modal edit assessment -->
-                <dialog id="my_modal_1" class="modal">
-                    <div class="modal-box bg-white w-[85%] md:w-max h-[90%] overflow-auto">
-
-                        <!-- Header -->
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold text-[#0071BC] flex items-center gap-2">
-                                <i class="fas fa-pen-to-square"></i>
-                                Edit Assessment
-                            </h3>
-                        </div>
-
-                        <!-- Form -->
-                        <form id="edit-assessment-form" class="space-y-6">
-                            <input type="hidden" id="edit-assessment-id" name="assessment_id">
-                            <input type="hidden" id="edit-assessment-type-id" name="assessment_type_id">
-                            <input type="hidden" id="edit-school-class-id" name="school_class_id">
-                            <input type="hidden" id="edit-mapel-id" name="mapel_id">
-                            <input type="hidden" id="edit-school-partner-id" name="school_partner_id">
-
-                            <!-- Semester & Assessment Type -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                                <!-- Semester -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-600 mb-1">
-                                        Semester
-                                        <sup class="text-red-500">&#42;</sup>
-                                    </label>
-                                    <select id="edit-semester-name" name="semester" class="w-full bg-white shadow-lg rounded-md h-12 border border-gray-300 text-sm cursor-pointer outline-none">
-                                        <option value="" hidden>Pilih Semester</option>
-                                        <option value="1">Semester 1</option>
-                                        <option value="2">Semester 2</option>
-                                    </select>
-                                    <span id="error-semester" class="text-red-500 text-xs mt-1 font-bold"></span>
-                                </div>
-
-                                <!-- Assessment Type -->
-                                <div>
-                                    <label class="block text-sm font-medium">
-                                        Assessment Type
-                                        <sup class="text-red-500">&#42;</sup>
-                                    </label>
-                                    <select id="edit-assessment-type" name="assessment_type_id"
-                                        class="mt-2 w-full bg-white shadow-lg rounded-md h-12 border border-gray-300 text-sm cursor-pointer outline-none">
-                                        <option value="" class="hidden">Pilih Tipe Asesmen</option>
-
-                                        @foreach ($schoolAssessmentType as $item)
-                                            <option value="{{ $item->id }}">{{ $item->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    <span id="error-assessment_type_id" class="text-red-500 text-xs mt-1 font-bold"></span>
-                                </div>
-
-                            </div>
-
-                            <!-- Divider -->
-                            <div class="border-t border-gray-300"></div>
-
-                            <!-- Title -->
-                            <div>
-                                <label class="block text-sm font-medium">
-                                    Assessment Title
-                                    <sup class="text-red-500">&#42;</sup>
-                                </label>
-                                <input type="text" id="edit-title" name="title" placeholder="Masukkan Judul Asesmen"
-                                    class="mt-2 w-full border border-gray-300 rounded-lg px-4 h-12 outline-none text-sm">
-                                <span id="error-title" class="text-red-500 text-xs font-semibold"></span>
-                            </div>
-
-                            <!-- Description -->
-                            <div>
-                                <label class="block text-sm font-medium">
-                                    Description (Optional)
-                                </label>
-                                <textarea id="edit-description" name="description" rows="3" placeholder="Masukkan Deskripsi Asesmen" 
-                                    class="mt-2 w-full border border-gray-300 rounded-lg p-4 outline-none text-sm resize-none"></textarea>
-                            </div>
-
-                            <!-- Duration + Schedule -->
-                            <div class="grid grid-cols-1 gap-4">
-
-                                <!-- Duration -->
-                                <div>
-                                    <label class="block text-sm font-medium">
-                                        Duration (minutes)
-                                        <sup class="text-red-500">&#42;</sup>
-                                    </label>
-                                    <input type="number" id="edit-duration" name="duration" placeholder="Masukkan Durasi Asesmen" class="mt-2 w-full border border-gray-300 rounded-lg 
-                                        px-4 h-12 outline-none text-sm">
-                                    <span id="error-duration" class="text-red-500 text-xs font-semibold"></span>
-                                </div>
-
-                                <div class="w-full relative flex flex-col gap-2 mt-4">
-                                    <label class="block text-sm font-medium mb-2">
-                                        Start Date
-                                        <sup class="text-red-500">&#42;</sup>
-                                    </label>
-
-                                    <input type="text" id="edit-start-date" name="start_date" class="w-full md:w-114 bg-white border border-gray-300 rounded-lg 
-                                        px-3 h-12 text-sm shadow-sm outline-none
-                                        disabled:bg-gray-100 disabled:text-gray-400 transition duration-200" placeholder="Pilih Tanggal">
-                                    <span class="absolute top-[63%] right-4 flex items-center text-gray-400 pointer-events-none">
-                                        <i class="fa-regular fa-calendar-days text-sm"></i>
-                                    </span>
-                                </div>
-                                <span id="error-start_date" class="text-red-500 text-xs font-semibold"></span>
-                            
-                                <div class="relative w-full flex flex-col gap-2 mt-4">
-                                    <label class="block text-sm font-medium mb-2">
-                                        End Date
-                                        <sup class="text-red-500">&#42;</sup>
-                                    </label>
-
-                                    <input type="text" id="edit-end-date" name="end_date" class="w-full md:w-114 bg-white border border-gray-300 rounded-lg 
-                                        px-3 h-12 text-sm shadow-sm outline-none
-                                        disabled:bg-gray-100 disabled:text-gray-400 transition duration-200" placeholder="Pilih Tanggal">
-                                    <span class="absolute top-[63%] right-4 flex items-center text-gray-400 pointer-events-none">
-                                        <i class="fa-regular fa-calendar-days text-sm"></i>
-                                    </span>
-                                </div>
-                                <span id="error-end_date" class="text-red-500 text-xs font-semibold"></span>
-
-                            </div>
-
-                            <!-- Divider -->
-                            <div class="divider my-4"></div>
-
-                            <!-- Settings -->
-                            <div>
-                                <div class="space-y-4 grid grid-cols1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-                                            Question Settings
-                                        </h3>
-
-                                        <div class="space-y-4">
-
-                                            <label class="flex items-start gap-3 cursor-pointer">
-                                                <input type="checkbox" name="shuffle_questions" class="mt-1">
-                                                <div>
-                                                    <p class="text-sm font-medium">Shuffle Questions</p>
-                                                    <p class="text-xs text-gray-500">
-                                                        Soal akan ditampilkan secara acak untuk setiap siswa.
-                                                    </p>
-                                                </div>
-                                            </label>
-
-                                            <label class="flex items-start gap-3 cursor-pointer">
-                                                <input type="checkbox" name="shuffle_options" class="mt-1">
-                                                <div>
-                                                    <p class="text-sm font-medium">Shuffle Options</p>
-                                                    <p class="text-xs text-gray-500">
-                                                        Urutan opsi jawaban akan diacak.
-                                                    </p>
-                                                </div>
-                                            </label>
-
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <h3 class="text-sm font-semibold text-gray-700 mb-3">
-                                            Result Settings
-                                        </h3>
-
-                                        <div class="space-y-4">
-
-                                            <label class="flex items-start gap-3 cursor-pointer">
-                                                <input type="checkbox" name="show_score" class="mt-1">
-                                                <div>
-                                                    <p class="text-sm font-medium">Show Score After Submit</p>
-                                                    <p class="text-xs text-gray-500">
-                                                        Nilai akan langsung ditampilkan setelah siswa mengirim jawaban.
-                                                    </p>
-                                                </div>
-                                            </label>
-
-                                            <label class="flex items-start gap-3 cursor-pointer">
-                                                <input type="checkbox" name="show_answer" class="mt-1">
-                                                <div>
-                                                    <p class="text-sm font-medium">Show Correct Answer</p>
-                                                    <p class="text-xs text-gray-500">
-                                                        Jawaban yang benar akan ditampilkan setelah pengerjaan selesai.
-                                                    </p>
-                                                </div>
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- submit button -->
-                            <div class="modal-action mt-8 flex justify-end">
-                                <button id="submit-button-edit-assessment" type="button"
-                                    class="px-6 py-2 rounded-lg bg-[#0071BC] text-white transition cursor-pointer disabled:cursor-default">
-                                    Simpan Perubahan
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-
-                    <!-- Backdrop -->
-                    <form method="dialog" class="modal-backdrop">
-                        <button>close</button>
-                    </form>
-                </dialog>
             </main>
         </div>
     </div>

@@ -178,7 +178,7 @@ function setupReview() {
 
         document.getElementById('review-type').textContent = form.querySelector('select[name="assessment_type_id"]')?.selectedOptions?.[0]?.text || '-';
 
-        document.getElementById('review-description').textContent = form.querySelector('textarea[name="description"]')?.value || '-';
+        document.getElementById('review-instruction').textContent = form.querySelector('textarea[name="assessment_instruction"]')?.value || '-';
 
         document.getElementById('review-duration').textContent = form.querySelector('input[name="duration"]')?.value || '-';
 
@@ -199,8 +199,6 @@ function setupReview() {
         // Project file
         const fileInput = form.querySelector('input[name="assessment_value_file"]');
         document.getElementById('review-filename').textContent = fileInput?.files?.[0]?.name || '-';
-
-        document.getElementById('review-instruction').textContent = form.querySelector('textarea[name="assessment_instruction"]')?.value || '-';
     }
 
     form.addEventListener('input', updateReview);

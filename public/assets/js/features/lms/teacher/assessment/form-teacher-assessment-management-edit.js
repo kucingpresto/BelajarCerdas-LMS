@@ -96,7 +96,6 @@ function showData() {
 
     const title = container.dataset.title;
     const semester = container.dataset.semester;
-    const description = container.dataset.description;
     const duration = container.dataset.duration;
     const startDate = container.dataset.startDate;
     const endDate = container.dataset.endDate;
@@ -125,7 +124,6 @@ function showData() {
 
     document.getElementById('edit-assessment-title').value = title;
     document.getElementById('edit-semester').value = semester;
-    document.getElementById('edit-description').value = description;
     document.getElementById('edit-start-date').value = startDate;
     document.getElementById('edit-end-date').value = endDate;
     

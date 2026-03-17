@@ -141,6 +141,7 @@ class TeacherAssessmentController extends Controller
             'school_class_id' => 'required|array|min:1',
             'school_class_id.*' => 'required|integer',
             'title' => 'required',
+            'assessment_instruction' => 'required',
             'assessment_type_id' => 'required|integer|exists:school_assessment_types,id',
             'semester' => 'required',
             'start_date' => 'required|date',
@@ -149,6 +150,7 @@ class TeacherAssessmentController extends Controller
         $messages = [
             'school_class_id.required' => 'Harap pilih kelas.',
             'title.required' => 'Harap isi judul asesmen.',
+            'assessment_instruction' => 'Instruksi tidak boleh kosong.',
             'assessment_type_id.required' => 'Harap pilih tipe asesmen.',
             'semester.required' => 'Harap pilih semester.',
             'start_date.required' => 'Harap pilih tanggal mulai.',
@@ -215,13 +217,11 @@ class TeacherAssessmentController extends Controller
             if ($assessmentMode->code === 'project') {
                 $rules = [
                     'assessment_value_file' => 'required|mimes:pdf,mp4|max:100000',
-                    'assessment_instruction' => 'required',
                 ];
                 $messages = [
                     'assessment_value_file.required' => 'File tidak boleh kosong.',
                     'assessment_value_file.mimes' => 'Format file tidak sesuai.',
                     'assessment_value_file.max' => 'File telah melebihi kapasitas yang ditentukan.',
-                    'assessment_instruction' => 'Instruksi tidak boleh kosong.',
                 ];
     
                 $validator = Validator::make($request->all(), $rules, $messages);
@@ -265,7 +265,7 @@ class TeacherAssessmentController extends Controller
                 'mapel_id' => $mapelId,
                 'assessment_type_id' => $request->assessment_type_id,
                 'title' => $request->title,
-                'description' => $request->description,
+                'assessment_instruction' => $request->assessment_instruction,
                 'duration' => $request->duration,
                 'semester' => $request->semester,
                 'start_date' => $request->start_date,
@@ -276,7 +276,6 @@ class TeacherAssessmentController extends Controller
             if ($assessmentMode->code === 'project') {
                 $data['assessment_value_file'] = $filename;
                 $data['assessment_original_filename'] = $file->getClientOriginalName();
-                $data['assessment_instruction'] = $request->assessment_instruction;
                 $data['show_score'] = $request->boolean('show_project_score');
             } else {
                 $data['shuffle_questions'] = $request->boolean('shuffle_questions');
@@ -414,6 +413,7 @@ class TeacherAssessmentController extends Controller
         // Base rules
         $rules = [
             'title' => 'required',
+            'assessment_instruction' => 'required',
             'assessment_type_id' => 'required',
             'semester' => 'required',
             'start_date' => 'required|date',
@@ -422,6 +422,7 @@ class TeacherAssessmentController extends Controller
 
         $messages = [
             'title.required' => 'Harap isi judul asesmen.',
+            'assessment_instruction.required' => 'Instruksi tidak boleh kosong.',
             'semester.required' => 'Harap pilih semester.',
             'start_date.required' => 'Harap pilih tanggal mulai.',
             'end_date.required' => 'Harap pilih tanggal selesai.',
@@ -437,9 +438,6 @@ class TeacherAssessmentController extends Controller
             $messages['assessment_value_file.required'] = 'Harap isi file asesmen.';
             $messages['assessment_value_file.mimes'] = 'Format file tidak sesuai.';
             $messages['assessment_value_file.max'] = 'File telah melebihi kapasitas yang ditentukan.';
-
-            $rules['assessment_instruction'] = 'required';
-            $messages['assessment_instruction.required'] = 'Instruksi tidak boleh kosong.';
         }
 
         $validator = Validator::make($request->all(), $rules, $messages);
@@ -467,7 +465,7 @@ class TeacherAssessmentController extends Controller
             'user_id' => $user->id,
             'school_partner_id' => $schoolId,
             'title' => $request->title,
-            'description' => $request->description,
+            'assessment_instruction' => $request->assessment_instruction,
             'duration' => $request->duration,
             'semester' => $request->semester,
             'start_date' => $request->start_date,
@@ -479,7 +477,6 @@ class TeacherAssessmentController extends Controller
                 $data['assessment_value_file'] = $filename;
                 $data['assessment_original_filename'] = $file->getClientOriginalName();
             }
-            $data['assessment_instruction'] = $request->assessment_instruction;
             $data['show_score'] = $request->boolean('show_score');
         } else {
             $data['shuffle_questions'] = $request->boolean('shuffle_questions');
