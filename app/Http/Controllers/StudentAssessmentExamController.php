@@ -7,6 +7,7 @@ use App\Models\SchoolAssessmentQuestion;
 use App\Models\StudentAssessmentAnswer;
 use App\Models\StudentAssessmentAttempt;
 use App\Models\StudentProjectSubmission;
+use App\Models\StudentSchoolClass;
 use App\Models\UserAccount;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -711,5 +712,221 @@ class StudentAssessmentExamController extends Controller
         }
 
         return response()->json(['message' => 'Gambar tidak ditemukan'], 404);
+    }
+
+    public function studentResultAssessment($role, $schoolName, $schoolId, $curriculumId, $mapelId, $assessmentTypeId, $semester, $assessmentId) 
+    {
+        $user = UserAccount::with(['StudentProfile','StudentSchoolClass'])->findOrFail(Auth::id());
+        $classId = $user->StudentSchoolClass[0]->school_class_id; // Ambil class id
+
+        // DATA JAWABAN USER
+        $answers = StudentAssessmentAnswer::where('student_id',$user->id)->where('school_assessment_id',$assessmentId)->get();
+        $totalQuestionsExam = $answers->count();
+        $totalCorrect = $answers->where('question_score','>',0)->count();
+        $totalWrong = $answers->where('question_score',0)->where('status_answer','submitted')->count();
+        $totalUnanswered = $answers->where('status_answer','draft')->count();
+        $totalPendingEssay = $answers->where('status_answer','submitted')->where('grading_status','pending')->count();
+
+        // SCORE
+        $finalScore = $answers->whereNotNull('question_score')->sum('question_score');
+        $maxScore = 100;
+        $percentage = $maxScore > 0 ? round(($finalScore / $maxScore) * 100, 2) : 0;
+
+        // DURASI USER
+        $durations = $answers->where('answer_duration','>',0)->pluck('answer_duration');
+        $fastestRaw = $durations->min() ?? 0;
+        $slowestRaw = $durations->max() ?? 0;
+        $totalDurationRaw = $answers->where('answer_duration','>',0)->pluck('total_exam_duration')->first() ?? 0;
+
+        // FORMAT DURASI
+        $formatDuration = function($seconds){
+
+            if($seconds <= 0) return '-';
+
+            $hours = floor($seconds / 3600);
+            $minutes = floor(($seconds % 3600) / 60);
+            $secondsRemain = $seconds % 60;
+
+            $parts = [];
+
+            if($hours > 0) $parts[] = $hours.' jam';
+            if($minutes > 0) $parts[] = $minutes.' menit';
+            if($secondsRemain > 0) $parts[] = $secondsRemain.' detik';
+
+            return implode(' ',$parts);
+        };
+
+        $fastest = $formatDuration($fastestRaw); // Format tercepat
+        $slowest = $formatDuration($slowestRaw); // Format terlambat
+        $totalDuration = $formatDuration($totalDurationRaw); // Total durasi
+
+        // CONFIDENCE SCORE
+        $answered = $totalCorrect + $totalWrong; // Total dijawab
+        $accuracy = $answered > 0 ? $totalCorrect / $answered : 0; // Akurasi jawaban benar
+        $completion = $totalQuestionsExam > 0 ? $answered / $totalQuestionsExam : 0; // Completion
+        $confidence = round(($accuracy * 0.8 + $completion * 0.2) * 100, 2); // Confidence awal
+
+        // TOTAL SISWA DI KELAS
+        $totalStudents = StudentSchoolClass::where('school_class_id',$classId)->count();
+
+        // SISWA YANG MENGERJAKAN
+        $participants = StudentAssessmentAnswer::where('school_assessment_id', $assessmentId)
+        ->whereIn('student_id', function ($q) use ($classId) {
+            $q->select('student_id')->from('student_school_classes')->where('school_class_id', $classId);
+        })->distinct('student_id')->count('student_id');
+
+        // RANKING TOTAL DURASI
+        $allDurations = StudentAssessmentAnswer::where('school_assessment_id',$assessmentId)->where('answer_duration','>',0)
+        ->selectRaw('student_id, SUM(answer_duration) as total_duration')->groupBy('student_id')->orderBy('total_duration')->get();
+
+        $uniqueTotalDurations = $allDurations->pluck('total_duration')->unique()->sort()->values();
+
+        $userTotalDuration = $allDurations->firstWhere('student_id',$user->id)->total_duration ?? null;
+
+        $rankDuration = $userTotalDuration !== null ? $uniqueTotalDurations->search($userTotalDuration) + 1 : null;
+
+        // cek apakah ada siswa yang sudah mengerjakan test atau belum
+        if ($rankDuration !== null) {
+            if ($participants == 1) {
+                $percentileDuration = 100; // hanya satu siswa -> 100%
+            } else {
+                $percentileDuration = round((($participants - $rankDuration) / ($participants - 1)) * 100, 2);
+            }
+        } else {
+            $percentileDuration = 0; // jika siswa tidak mengerjakan
+        }
+
+        // TERCEPAT PER SOAL
+        $fastestQuestion = StudentAssessmentAnswer::where('school_assessment_id',$assessmentId)->where('answer_duration','>',0)
+        ->selectRaw('student_id, MIN(answer_duration) as duration')->groupBy('student_id')->orderBy('duration')->get();
+
+        $uniqueFastestDurations = $fastestQuestion->pluck('duration')->unique()->sort()->values();
+
+        $userFastestDuration = $fastestQuestion->firstWhere('student_id',$user->id)->duration ?? null;
+
+        $rankFastest = $userFastestDuration !== null ? $uniqueFastestDurations->search($userFastestDuration) + 1 : null;
+
+        // cek apakah ada siswa yang sudah mengerjakan test atau belum
+        if ($rankFastest !== null) {
+            if ($participants == 1) {
+                $percentileFastest = 100; // hanya satu siswa -> 100%
+            } else {
+                $percentileFastest = round((($participants - $rankFastest) / ($participants - 1)) * 100, 2);
+            }
+        } else {
+            $percentileFastest = 0; // jika siswa tidak mengerjakan
+        }
+
+        // TERLAMA PER SOAL
+        $slowestQuestion = StudentAssessmentAnswer::where('school_assessment_id',$assessmentId)->where('answer_duration','>',0)
+        ->selectRaw('student_id, MAX(answer_duration) as duration')->groupBy('student_id')->orderBy('duration')->get();
+
+        $uniqueSlowestDuration = $slowestQuestion->pluck('duration')->unique()->sortDesc()->values();
+
+        $userSlowestDuration = $slowestQuestion->firstWhere('student_id',$user->id)->duration ?? null;
+
+        $rankSlowest = $userSlowestDuration !== null ? $uniqueSlowestDuration->search($userSlowestDuration) + 1 : null;
+
+        // cek apakah ada siswa yang sudah mengerjakan test atau belum
+        if ($rankSlowest !== null) {
+            if ($participants == 1) {
+                $percentileSlowest = 100; // hanya satu siswa -> 100%
+            } else {
+                $percentileSlowest = round((($participants - $rankSlowest) / ($participants - 1)) * 100, 2);
+            }
+        } else {
+            $percentileSlowest = 0; // jika siswa tidak mengerjakan
+        }
+
+        // CONFIDENCE RANK
+        $totalQuestions = StudentAssessmentAnswer::where('school_assessment_id',$assessmentId)->distinct('school_assessment_question_id')
+        ->count('school_assessment_question_id');
+
+        $allConfidence = StudentAssessmentAnswer::where('school_assessment_id',$assessmentId)
+        ->selectRaw('student_id, SUM(CASE WHEN question_score > 0 THEN 1 ELSE 0 END) as correct, SUM(CASE WHEN status_answer = "submitted" THEN 1 ELSE 0 END) as answered,
+            SUM(answer_duration) as total_duration')->groupBy('student_id')
+        ->get();
+
+        $durations = $allConfidence->pluck('total_duration');
+        $minDuration = $durations->min();
+        $maxDuration = $durations->max();
+
+        $allConfidence = $allConfidence->map(function($row) use ($totalQuestions,$minDuration,$maxDuration){
+
+            $duration = $row->total_duration ?? 0;
+
+            $accuracy = $row->answered > 0 ? $row->correct / $row->answered : 0; // Akurasi
+
+            $completion = $totalQuestions > 0 ? min($row->answered / $totalQuestions, 1) : 0; // Completion
+
+            if($maxDuration == $minDuration){
+                $speed = 1;
+            } else {
+                $speed = ($maxDuration - $duration) / ($maxDuration - $minDuration);
+            }
+
+            $speed = max(min($speed,1),0);
+
+            $confidence = min(($accuracy * 0.7 + $completion * 0.2 + $speed * 0.1) * 100, 100); // Hitung confidence
+
+            return [
+                'student_id'=> $row->student_id,
+                'confidence'=> round($confidence,2)
+            ];
+
+        })
+        ->sortByDesc('confidence')
+        ->values();
+
+        $uniqueConfidence = $allConfidence->pluck('confidence')->unique()->sortDesc()->values();
+
+        $userConfidenceRow = $allConfidence->firstWhere('student_id',$user->id);
+
+        $userConfidence = $userConfidenceRow['confidence'] ?? null;
+
+        $confidence = $userConfidence;
+
+        $rankConfidence = $userConfidence !== null ? $uniqueConfidence->search($userConfidence) + 1 : null;
+
+        // cek apakah ada siswa yang sudah mengerjakan test atau belum
+        if ($rankConfidence !== null) {
+            if ($participants == 1) {
+                $percentileConfidence = 100; // hanya satu siswa -> 100%
+            } else {
+                $percentileConfidence = round((($participants - $rankConfidence) / ($participants - 1)) * 100, 2);
+            }
+        } else {
+            $percentileConfidence = 0; // jika siswa tidak mengerjakan
+        }
+
+        $isFullyGraded = $totalPendingEssay === 0;
+
+        $schoolAssessment = SchoolAssessment::find($assessmentId);
+
+        return view('features.lms.student.assessment.student-assessment-result-test',compact('role','schoolName', 'schoolId', 'curriculumId', 'mapelId', 
+            'assessmentTypeId', 'semester', 'assessmentId', 'user','totalQuestions', 'totalCorrect', 'totalWrong', 'totalUnanswered', 'totalPendingEssay', 'finalScore', 'percentage',
+                'isFullyGraded', 'schoolAssessment', 'fastest', 'slowest', 'totalDuration', 'confidence', 'percentileDuration', 'percentileFastest', 'percentileSlowest', 'percentileConfidence',
+                'participants', 'totalStudents'
+            )
+        );
+    }
+
+    public function studentProjectResult($role, $schoolName, $schoolId, $curriculumId, $mapelId, $assessmentTypeId, $semester, $assessmentId)
+    {
+        $user = Auth::user();
+
+        $submission = StudentProjectSubmission::where('student_id', $user->id)
+            ->where('school_assessment_id', $assessmentId)
+            ->first();
+
+        $score = $submission->score ?? 0;
+
+        // cek apakah sudah dinilai
+        $isFullyGraded = $submission && $submission->grading_status === 'graded';
+
+        $schoolAssessment = SchoolAssessment::find($assessmentId);
+
+        return view('features.lms.student.assessment.student-project-assessment-result', compact('role', 'schoolName', 'schoolId', 'curriculumId', 
+            'mapelId', 'assessmentTypeId', 'semester', 'assessmentId', 'submission', 'score', 'isFullyGraded', 'schoolAssessment'));
     }
 }
