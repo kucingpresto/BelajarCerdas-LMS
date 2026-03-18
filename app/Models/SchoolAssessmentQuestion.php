@@ -24,4 +24,9 @@ class SchoolAssessmentQuestion extends Model
     {
         return $this->belongsTo(LmsQuestionBank::class, 'question_bank_id');
     }
+
+    public function StudentAssessmentAnswer()
+    {
+        return $this->hasMany(StudentAssessmentAnswer::class, 'school_assessment_question_id');
+    }
 }

@@ -96,4 +96,14 @@ class UserAccount extends Authenticatable
     {
         return $this->hasMany(SchoolAssessment::class, 'user_id');
     }
+
+    public function StudentAssessmentAnswer()
+    {
+        return $this->hasMany(StudentAssessmentAnswer::class, 'student_id');
+    }
+
+    public function StudentProjectSubmission()
+    {
+        return $this->hasMany(StudentProjectSubmission::class, 'student_id');
+    }
 }

@@ -40,6 +40,16 @@ class SchoolAssessment extends Model
         return $this->hasMany(SchoolAssessmentQuestion::class, 'school_assessment_id');
     }
 
+    public function StudentAssessmentAnswer()
+    {
+        return $this->hasMany(StudentAssessmentAnswer::class, 'school_assessment_question_id');
+    }
+
+    public function StudentProjectSubmission()
+    {
+        return $this->hasMany(StudentProjectSubmission::class, 'school_assessment_id');
+    }
+
     public function UserAccount()
     {
         return $this->belongsTo(UserAccount::class, 'user_id');
