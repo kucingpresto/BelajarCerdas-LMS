@@ -167,3 +167,7 @@ body {
     list-style: decimal !important;
     padding-left: 15px;
 }
+
+input[type="radio"]:checked + label.nomor-soal {
+    background-color: rgba(0, 0, 0, 0.09);
+}
