@@ -33,19 +33,16 @@
                 </li>
             </ul>
 
-            <!-- FOOTER (DIPAKSA KE BAWAH) -->
+            <!-- FOOTER -->
             <div class="mt-auto">
                 <hr class="border-white border opacity-60 mb-10 mx-6">
 
-                <div class="pb-16 -ml-2">
-                    <span class="text-sm mb-6 flex justify-center font-bold">
-                        Partnership By:
-                    </span>
-
-                    <div class="flex justify-center w-full">
-                        <img
-                            src="{{ asset('assets/images/logo-bc/white-logo-bc.svg') }}" alt="Belajar Cerdas" class="h-12 object-contain"
-                        >
+                <div class="pb-16 -ml-2 flex justify-center">
+                    <div class="flex flex-col w-max">
+                        <span class="text-[13px] mb-3">
+                            Powered By:
+                        </span>
+                        <img src="{{ asset('assets/images/logo-bc/white-logo-bc.svg') }}" alt="Belajar Cerdas" class="h-12 object-contain">
                     </div>
                 </div>
             </div>
@@ -717,15 +714,12 @@
             <div class="mt-auto">
                 <hr class="border-white border opacity-60 mb-10 mx-6">
 
-                <div class="pb-16 -ml-2">
-                    <span class="text-sm mb-6 flex justify-center font-bold">
-                        Partnership By:
-                    </span>
-
-                    <div class="flex justify-center w-full">
-                        <img
-                            src="{{ asset('assets/images/logo-bc/white-logo-bc.svg') }}" alt="Belajar Cerdas" class="h-12 object-contain"
-                        >
+                <div class="pb-16 -ml-2 flex justify-center">
+                    <div class="flex flex-col w-max">
+                        <span class="text-[13px] mb-3">
+                            Powered By:
+                        </span>
+                        <img src="{{ asset('assets/images/logo-bc/white-logo-bc.svg') }}" alt="Belajar Cerdas" class="h-12 object-contain">
                     </div>
                 </div>
             </div>
