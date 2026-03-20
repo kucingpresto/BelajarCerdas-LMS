@@ -36,7 +36,7 @@ class StudentAssessmentExamController extends Controller
             return response()->json(['data' => null]);
         }
 
-        $publishedQuestionIds = SchoolAssessmentQuestion::where('school_assessment_id', $assessmentId)->pluck('id')->implode(',');
+        $publishedQuestionIds = SchoolAssessmentQuestion::where('school_assessment_id', $assessmentId)->orderBy('id')->pluck('id')->implode(',');
 
         $schoolAssessment = SchoolAssessment::where('id', $assessmentId)->first();
 
@@ -84,7 +84,7 @@ class StudentAssessmentExamController extends Controller
                 return $question;
             }
 
-            $publishedOptionIds = $options->pluck('id')->implode(',');
+            $publishedOptionIds = $options->sortBy('id')->pluck('id')->implode(',');
 
             $optionCacheKey = "assessment-option-{$user->id}-{$assessmentId}-{$question->id}-{$publishedOptionIds}-{$semester}-{$shuffleOptions}";
 
@@ -136,7 +136,7 @@ class StudentAssessmentExamController extends Controller
                         && $opt->extra_data['side'] === 'right';
                 })->values();
 
-                $publishedRightIds = $right->pluck('id')->implode(',');
+                $publishedRightIds = $right->sortBy('id')->pluck('id')->implode(',');
 
                 $matchingCacheKey = "assessment-match-{$user->id}-{$assessmentId}-{$question->id}-{$publishedRightIds}-{$semester}-{$shuffleOptions}";
 
@@ -169,6 +169,97 @@ class StudentAssessmentExamController extends Controller
                 $shuffled = collect();
 
                 foreach ($left as $l) {
+                    $shuffled->push($l);
+                }
+
+                foreach ($right as $r) {
+                    $shuffled->push($r);
+                }
+
+                $question->LmsQuestionBank->setRelation(
+                    'LmsQuestionOption',
+                    $shuffled
+                );
+            }
+
+            if ($type === 'PG_KOMPLEKS') {
+
+                // AMBIL ITEMS (ROW)
+                $items = $options->filter(function ($opt) {
+                    return isset($opt->extra_data['side']) 
+                        && $opt->extra_data['side'] === 'item';
+                })->values();
+
+                $publishedItemIds = $items->sortBy('id')->pluck('id')->implode(',');
+
+                $itemCacheKey = "assessment-pgk-item-{$user->id}-{$assessmentId}-{$question->id}-{$publishedItemIds}-{$semester}-{$shuffleOptions}";
+
+                if (Cache::has($itemCacheKey)) {
+
+                    $cachedIds = Cache::get($itemCacheKey);
+
+                    $items = $items->whereIn('id', $cachedIds)->sortBy(function ($opt) use ($cachedIds) {
+                        return array_search($opt->id, $cachedIds);
+                    })->values();
+
+                } else {
+
+                    if ($shuffleOptions) {
+                        $items = $items->shuffle()->values();
+                    } else {
+                        $items = $items->values();
+                    }
+
+                    Cache::put($itemCacheKey, $items->pluck('id')->toArray(), now()->addHours(3));
+                }
+
+                // AMBIL CATEGORY (COLUMN)
+                $right = $options->filter(function ($opt) {
+                    return isset($opt->extra_data['side']) 
+                        && $opt->extra_data['side'] === 'category';
+                })->values();
+
+                $publishedRightIds = $right->sortBy('id')->pluck('id')->implode(',');
+
+                $matchingCacheKey = "assessment-pgk-category-{$user->id}-{$assessmentId}-{$question->id}-{$publishedRightIds}-{$semester}-{$shuffleOptions}";
+
+                if (Cache::has($matchingCacheKey)) {
+
+                    $cachedIds = Cache::get($matchingCacheKey);
+
+                    $right = $right->whereIn('id', $cachedIds)->sortBy(function ($opt) use ($cachedIds) {
+                        return array_search($opt->id, $cachedIds);
+                    })->values();
+                } else {
+
+                    if ($shuffleOptions) {
+                        $right = $right->shuffle()->values();
+                    } else {
+                        $right = $right->values();
+                    }
+
+                    Cache::put($matchingCacheKey, $right->pluck('id')->toArray(), now()->addHours(3));
+                }
+
+                // GABUNGKAN ITEMS + CATEGORY
+                $shuffled = collect();
+
+                foreach ($items as $item) {
+                    $shuffled->push($item);
+                }
+
+                foreach ($right as $cat) {
+                    $shuffled->push($cat);
+                }
+
+                $question->LmsQuestionBank->setRelation(
+                    'LmsQuestionOption',
+                    $shuffled
+                );
+
+                $shuffled = collect();
+
+                foreach ($items as $l) {
                     $shuffled->push($l);
                 }
 
@@ -253,6 +344,42 @@ class StudentAssessmentExamController extends Controller
                                     return [
                                         trim($opt->options_key) =>
                                         trim($opt->extra_data['pair_with'] ?? '')
+                                    ];
+                                })
+                                ->toArray();
+
+                            $normalizedStudentAnswer = collect($studentAnswer)
+                                ->mapWithKeys(function ($value, $key) {
+                                    return [trim($key) => trim($value)];
+                                })
+                                ->toArray();
+
+                            ksort($correctPairs);
+                            ksort($normalizedStudentAnswer);
+
+                            $isCorrect = $correctPairs === $normalizedStudentAnswer;
+                        }
+                    }
+
+                    if ($type === 'PG_KOMPLEKS') {
+
+                        if (is_string($studentAnswer)) {
+                            $studentAnswer = json_decode($studentAnswer, true);
+                        }
+
+                        if (!is_array($studentAnswer)) {
+                            $isCorrect = false;
+                        } else {
+
+                            $correctPairs = $question->LmsQuestionBank->LmsQuestionOption
+                                ->filter(function ($opt) {
+                                    return isset($opt->extra_data['side']) 
+                                        && $opt->extra_data['side'] === 'item';
+                                })
+                                ->mapWithKeys(function ($opt) {
+                                    return [
+                                        trim($opt->options_key) =>
+                                        trim($opt->extra_data['answer'] ?? '')
                                     ];
                                 })
                                 ->toArray();
@@ -586,6 +713,25 @@ class StudentAssessmentExamController extends Controller
 
                     }
 
+                break;
+
+                case 'PG_KOMPLEKS':
+
+                    $correctAnswers = $question->lmsQuestionOption()->get()->filter(function ($opt) {
+                        return isset($opt->extra_data['side']) && $opt->extra_data['side'] === 'item';
+                    })
+                        ->mapWithKeys(function ($opt) {
+                            return [
+                                $opt->options_key => $opt->extra_data['answer']
+                            ];
+                        })->toArray();
+
+                    ksort($correctAnswers);
+                    ksort($answerData);
+
+                    if ($correctAnswers === $answerData) {
+                        $score = $schoolQuestion->question_weight;
+                    }
                 break;
 
                 // ESSSAY

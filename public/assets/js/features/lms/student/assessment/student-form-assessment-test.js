@@ -445,6 +445,134 @@ function studentFormAssessment(selectedIndex = 0) {
                         ${correctAnswer}
                     `;
                 }
+
+                function generatePgKompleks(options = []) {
+
+                    if (!Array.isArray(options)) return '';
+
+                    const categories = options.filter(item => item.extra_data?.side === 'category');
+                    const items = options.filter(item => item.extra_data?.side === 'item');
+
+                    let existingAnswer = questionsAnswer[question.id]?.answer_value || {};
+
+                    if (typeof existingAnswer === 'string') {
+                        try {
+                            existingAnswer = JSON.parse(existingAnswer);
+                        } catch (e) {
+                            existingAnswer = {};
+                        }
+                    }
+
+                    const isReviewMode = isAllAnswered && showAnswer;
+
+                    return `
+                        <div class="overflow-x-auto mt-6">
+
+                            ${isReviewMode ? `
+                                <div class="flex flex-wrap gap-4 text-xs mb-4">
+                                    <span class="flex items-center gap-1 text-green-600 font-semibold">
+                                        <i class="fa-solid fa-check"></i> Jawaban Benar
+                                    </span>
+                                    <span class="flex items-center gap-1 text-red-600 font-semibold">
+                                        <i class="fa-solid fa-xmark"></i> Jawaban Salah
+                                    </span>
+                                    <span class="flex items-center gap-1 text-[#4189E0] font-semibold">
+                                        <input type="radio" class="w-4 h-4" checked onclick="return false"> 
+                                        Jawaban Kamu
+                                    </span>
+                                </div>
+                            ` : ''}
+
+                            <table class="w-full border border-gray-300 text-sm">
+                                <thead>
+                                    <tr class="bg-gray-100 text-center">
+                                        <th class="border px-4 py-2">
+                                            ${question.lms_question_bank?.header_item ?? 'Pernyataan'}
+                                        </th>
+                                        ${categories.map(category => `
+                                            <th class="border px-4 py-2">
+                                                ${category.options_value}
+                                            </th>
+                                        `).join('')}
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    ${items.map(item => {
+
+                                        const correctAnswer = item.extra_data?.answer;
+                                        const userAnswer = existingAnswer[item.options_key];
+
+                                        let rowClass = '';
+                                        if (isReviewMode) {
+                                            rowClass = userAnswer === correctAnswer ? 'bg-green-50' : 'bg-red-50';
+                                        }
+
+                                        const content = addClassToImgTags(item.options_value, 'max-w-[200px] w-full rounded');
+
+                                        return `
+                                            <tr class="${rowClass}">
+                                                <td class="border px-4 py-3">
+                                                    ${content}
+                                                </td>
+
+                                                ${categories.map(cat => {
+
+                                            const selected = userAnswer === cat.options_key;
+                                            const isCorrect = correctAnswer === cat.options_key;
+
+                                            let cellClass = '';
+                                            let icon = '';
+                                            let badge = '';
+
+                                            if (isReviewMode) {
+
+                                                // Jawaban benar & dipilih
+                                                if (selected && isCorrect) {
+                                                    cellClass += ' bg-green-100 border-green-400';
+                                                    icon = '<i class="fa-solid fa-check text-green-600"></i>';
+                                                    badge = '<span class="text-[10px] text-green-700">Jawabanmu</span>';
+
+                                                // Jawaban salah
+                                                } else if (selected && !isCorrect) {
+                                                    cellClass += ' bg-red-100 border-red-400';
+                                                    icon = '<i class="fa-solid fa-xmark text-red-600"></i>';
+                                                    badge = '<span class="text-[10px] text-red-700">Jawabanmu</span>';
+
+                                                // Kunci jawaban
+                                                } else if (!selected && isCorrect) {
+                                                    cellClass += ' bg-green-50 border-green-300';
+                                                    icon = '<i class="fa-solid fa-check text-green-500"></i>';
+                                                    badge = '<span class="text-[10px] text-green-600">Jawaban Benar</span>';
+                                                }
+                                            }
+
+                                            return `
+                                                <td class="border">
+                                                    <div class="flex flex-col items-center justify-center gap-1 py-2 ${cellClass}">
+
+                                                        <input type="radio" name="pg_kompleks_${item.options_key}" value="${cat.options_key}" class="w-4 h-4"
+                                                            ${selected ? 'checked' : ''} ${isReviewMode ? 'onclick="return false"' : ''}>
+
+                                                        ${isReviewMode ? `
+                                                            <div class="flex flex-col items-center text-xs">
+                                                                ${icon}
+                                                                ${badge}
+                                                            </div>
+                                                        ` : ''}
+
+                                                    </div>
+                                                </td>
+                                                `;
+                                        }).join('')}
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
     
                 let submitAnswerType = '';
     
@@ -457,6 +585,8 @@ function studentFormAssessment(selectedIndex = 0) {
                     submitAnswerType = generateEssay();
                 } else if (questionType === 'matching') {
                     submitAnswerType = generateMatching(leftItems, rightItems);
+                } else if (questionType === 'pg_kompleks') {
+                    submitAnswerType = generatePgKompleks(question.lms_question_bank?.lms_question_option);
                 } else {
                     submitAnswerType = generateOptions(question?.lms_question_bank?.lms_question_option);
                 }
@@ -1075,6 +1205,30 @@ $(document).on('change', 'input[name^="options_value_"]', function () {
         // MCQ single choice
         $(`#userAnswer${soalId}`).val($(this).val());
     }
+});
+
+// Listener radio -> update input hidden (PG Kompleks)
+function collectPgKompleksAnswer(soalId) {
+    const result = {};
+
+    document.querySelectorAll('input[name^="pg_kompleks_"]:checked')
+        .forEach(input => {
+            const key = input.name.replace('pg_kompleks_', '');
+            result[key] = input.value;
+        });
+
+    // simpan ke hidden input
+    $(`#userAnswer${soalId}`).val(JSON.stringify(result));
+
+    return result;
+}
+
+$(document).on('change', 'input[name^="pg_kompleks_"]', function () {
+    const soalId = $('input[name="school_assessment_question_id"]').val();
+
+    collectPgKompleksAnswer(soalId);
+
+    $('#error-answer_value').text('');
 });
 
 $(document).on('click', '#btn-submit-save-answer, #btn-submit-draft-answer', function (e) {
