@@ -656,7 +656,7 @@ class LmsController extends Controller
         ];
 
         // Membuat rule unique untuk class_name
-        $classNameRule = Rule::unique('school_classes', 'class_name')->where('tahun_ajaran', $request->tahun_ajaran)->where('school_partner_id', $schoolId);
+        $classNameRule = Rule::unique('school_classes', 'class_name')->where('tahun_ajaran', $request->tahun_ajaran)->where('school_partner_id', $schoolId)->ignore($classId);
 
         // Jika MAJOR ID ada (kelas berbasis jurusan),
         if ($majorId) {
