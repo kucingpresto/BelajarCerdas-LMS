@@ -424,7 +424,7 @@ class LmsController extends Controller
         $validator = Validator::make($request->all(), [
             'major_name' => [
                 'required',
-                Rule::unique('school_majors', 'major_name')->where('school_partner_id', $schoolId),
+                Rule::unique('school_majors', 'major_name')->where('school_partner_id', $schoolId)->ignore($majorId),
             ],
             'major_code' => [
                 'required',
