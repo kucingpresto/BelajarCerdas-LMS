@@ -653,6 +653,13 @@
                                         ]) }}" class="link-href block py-2 text-[12px]">
                                         Assessment Mangement
                                     </a>
+                                    <a href="{{ route('lms.assessmentGradingManagement.view', [
+                                            'role' => Auth::user()->role,
+                                            'schoolName' => Auth::user()->SchoolStaffProfile->SchoolPartner->nama_sekolah,
+                                            'schoolId' => Auth::user()->SchoolStaffProfile->SchoolPartner->id
+                                        ]) }}" class="link-href block py-2 text-[12px]">
+                                        Assessment Belum Dinilai
+                                    </a>
                                 </div>
                             </div>
 
@@ -945,6 +952,13 @@
                                             'schoolId' => Auth::user()->SchoolStaffProfile->SchoolPartner->id
                                         ]) }}" class="link-href block py-2 text-[12px]">
                                         Assessment Mangement
+                                    </a>
+                                    <a href="{{ route('lms.assessmentGradingManagement.view', [
+                                            'role' => Auth::user()->role,
+                                            'schoolName' => Auth::user()->SchoolStaffProfile->SchoolPartner->nama_sekolah,
+                                            'schoolId' => Auth::user()->SchoolStaffProfile->SchoolPartner->id
+                                        ]) }}" class="link-href block py-2 text-[12px]">
+                                        Assessment Belum Dinilai
                                     </a>
                                 </div>
                             </div>
