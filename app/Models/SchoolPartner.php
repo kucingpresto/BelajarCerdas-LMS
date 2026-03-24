@@ -106,4 +106,9 @@ class SchoolPartner extends Model
     {
         return $this->hasMany(SchoolAssessment::class, 'school_partner_id');
     }
+
+    public function SchoolAssessmentTypeWeight()
+    {
+        return $this->hasMany(SchoolAssessmentTypeWeight::class, 'school_partner_id');
+    }
 }

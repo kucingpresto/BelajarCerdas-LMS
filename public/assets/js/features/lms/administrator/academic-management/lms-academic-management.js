@@ -68,6 +68,7 @@ function managementAcademic() {
                     const lmsContentManagement = response.lmsContentManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
                     const lmsAssessmentTypeManagement = response.lmsAssessmentTypeManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
                     const lmsTeacherSubjectManagement = response.lmsTeacherSubjectManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
+                    const lmsAssessmentWeightManagement = response.lmsAssessmentWeightManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
 
                     const academicManagementGroups = [
                         {
@@ -123,6 +124,18 @@ function managementAcademic() {
                             ],
                             link: {
                                 href: lmsAssessmentTypeManagement,
+                            }
+                        },
+                        {
+                            key: 'assessment_weight',
+                            title: 'Assessment Weight',
+                            icon: 'fa-solid fa-scale-balanced',
+                            description: 'Pengaturan bobot nilai tiap jenis asesmen',
+                            items: [
+                                'Kelola Bobot Asesmen',
+                            ],
+                            link: {
+                                href: lmsAssessmentWeightManagement,
                             }
                         },
                         {

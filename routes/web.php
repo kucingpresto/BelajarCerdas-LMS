@@ -332,6 +332,17 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     // paginate
     Route::get('/lms/school-subscription/{schoolName}/{schoolId}/subject-teacher-management/paginate', [LmsController::class, 'paginateLmsTeacherSubjectManagement'])->name('lmsTeacherSubjectManagement.paginate');
 
+    // ROUTES ASSESSMENT WEIGHT MANAGEMENT
+    // views
+    Route::get('/lms/school-subscription/{schoolName}/{schoolId}/assessment-weight-management', [LmsController::class, 'assessmentWeight'])->name('lms.assessmentWeight.view');
+
+    // crud
+    Route::post('/lms/school-subscription/{schoolName}/{schoolId}/assessment-weight-management/store', [LmsController::class, 'assessmentWeightStore'])->name('lms.assessmentWeight.store');
+    Route::post('/lms/school-subscription/{schoolName}/{schoolId}/assessment-weight-management/{assessmentWeightId}/edit', [LmsController::class, 'assessmentWeightEdit'])->name('lms.assessmentWeight.edit');
+
+    // paginate
+    Route::get('/lms/school-subscription/{schoolName}/{schoolId}/assessment-weight-management/paginate', [LmsController::class, 'paginateAssessmentWeight'])->name('lms.assessmentWeight.paginate');
+
     // ROUTES STUDENT LMS
     // components routes
     Route::get('/lms/{role}/{schoolName}/{schoolId}/curriculum/{curriculumId}/subject/{mapelId}/subject-progress', [StudentSubjectProgressController::class, 'index'])->name('lms.studentSubjectProgress.index');
@@ -452,7 +463,7 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     Route::get('/lms/{role}/{schoolName}/{schoolId}/teacher-question-bank-for-release/paginate', [TeacherQuestionBankReleaseController::class, 'paginateTeacherQuestionBankForRelease'])->name('lms.teacherQuestionBankForRelease.paginate');
     Route::get('/lms/{role}/{schoolName}/{schoolId}/teacher-question-bank-for-release/review/{assessmentQuestionId}/paginate', [TeacherQuestionBankReleaseController::class, 'paginateTeacherReviewQuestionBankForRelease'])->name('lms.teacherReviewQuestionBankForRelease.paginate');
 
-// TEACHER ASSESSMENT GRADING
+    // TEACHER ASSESSMENT GRADING
     // assessment grading management
     // views
     Route::get('/lms/{role}/{schoolName}/{schoolId}/assessment-grading', [TeacherAssessmentGradingController::class, 'assessmentGradingManagement'])->name('lms.assessmentGradingManagement.view');

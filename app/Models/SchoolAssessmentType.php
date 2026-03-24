@@ -35,4 +35,9 @@ class SchoolAssessmentType extends Model
     {
         return $this->hasMany(SchoolAssessment::class, 'assessment_type_id');
     }
+
+    public function SchoolAssessmentTypeWeight()
+    {
+        return $this->hasMany(SchoolAssessmentTypeWeight::class, 'assessment_type_id');
+    }
 }
