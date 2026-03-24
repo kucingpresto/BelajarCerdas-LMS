@@ -2032,13 +2032,14 @@ class LmsController extends Controller
             ],
             'assessment_mode_id' => 'required',
             'is_remedial_allowed' => 'required',
-            'max_remedial_attempt' => 'required_if:is_remedial_allowed,1',
+            'max_remedial_attempt' => 'required_if:is_remedial_allowed,1|integer|min:1',
         ], [
             'name.required' => 'Nama asesmen tidak boleh kosong.',
             'name.unique'   => 'Nama asesmen telah terdaftar pada sekolah ini.',
             'assessment_mode_id.required' => 'Mode asesmen tidak boleh kosong.',
             'is_remedial_allowed.required' => 'Kebijakan remedial tidak boleh kosong.',
             'max_remedial_attempt.required_if' => 'Jumlah remedial tidak boleh kosong.',
+            'max_remedial_attempt.min' => 'Jumlah remedial harus lebih dari 0.',
         ]);
 
         if ($validator->fails()) {
@@ -2084,18 +2085,16 @@ class LmsController extends Controller
                 'required',
                 Rule::unique('school_assessment_types', 'name')->where('school_partner_id', $schoolId)->ignore($assessmentTypeId),
             ],
-        ], [
-            'name.required' => 'Nama asesmen harus diisi.',
-            'name.unique'   => 'Nama asesmen telah terdaftar pada sekolah ini.',
             'assessment_mode_id' => 'required',
             'is_remedial_allowed' => 'required',
-            'max_remedial_attempt' => 'required_if:is_remedial_allowed,1',
+            'max_remedial_attempt' => 'required_if:is_remedial_allowed,1|integer|min:1',
         ], [
             'name.required' => 'Nama asesmen tidak boleh kosong.',
             'name.unique'   => 'Nama asesmen telah terdaftar pada sekolah ini.',
             'assessment_mode_id.required' => 'Mode asesmen tidak boleh kosong.',
             'is_remedial_allowed.required' => 'Kebijakan remedial tidak boleh kosong.',
             'max_remedial_attempt.required_if' => 'Jumlah remedial tidak boleh kosong.',
+            'max_remedial_attempt.min' => 'Jumlah remedial harus lebih dari 0.',
         ]);
 
         if ($validator->fails()) {

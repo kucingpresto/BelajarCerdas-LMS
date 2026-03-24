@@ -89,12 +89,12 @@
                                             Maksimal Remedial
                                             <sup class="text-red-500">&#42;</sup>
                                         </label>
-                                        <input type="number" name="max_remedial_attempt" id="max_remedial_attempt" min="1" value="1"
+                                        <input type="number" name="max_remedial_attempt" id="max_remedial_attempt" min="1" value="1" placeholder="Masukkan jumlah maksimal remedial"
                                             class="mt-2 w-full h-11 rounded-full border border-gray-200 px-4 text-xs shadow-sm outline-none">
+                                        <span id="error-max_remedial_attempt" class="text-red-500 text-xs mt-1 font-bold"></span>
                                         <p class="text-[11px] text-gray-500 mt-1">
                                             Contoh: 2 berarti siswa boleh remedial maksimal 2 kali.
                                         </p>
-                                        <span id="error-assessment_mode" class="text-red-500 text-xs mt-1 font-bold"></span>
                                     </div>
 
                                 </div>
@@ -217,12 +217,12 @@
                                                 Maksimal Remedial
                                                 <sup class="text-red-500">&#42;</sup>
                                             </label>
-                                            <input type="number" id="edit-max-remedial-attempt" name="max_remedial_attempt" min="1" value="1"
+                                            <input type="number" id="edit-max-remedial-attempt" name="max_remedial_attempt" min="1" value="1" placeholder="Masukkan jumlah maksimal remedial"
                                                 class="mt-2 w-full h-11 rounded-full border border-gray-200 px-4 text-xs shadow-sm outline-none">
+                                            <span id="error-max_remedial_attempt" class="text-red-500 text-xs mt-1 font-bold"></span>
                                             <p class="text-[11px] text-gray-500 mt-1">
                                                 Contoh: 2 berarti siswa boleh remedial maksimal 2 kali.
                                             </p>
-                                            <span id="error-assessment_mode" class="text-red-500 text-xs mt-1 font-bold"></span>
                                         </div>
                                     </div>
 
