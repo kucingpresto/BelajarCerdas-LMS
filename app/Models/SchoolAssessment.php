@@ -42,7 +42,7 @@ class SchoolAssessment extends Model
 
     public function StudentAssessmentAnswer()
     {
-        return $this->hasMany(StudentAssessmentAnswer::class, 'school_assessment_question_id');
+        return $this->hasMany(StudentAssessmentAnswer::class, 'school_assessment_id');
     }
 
     public function StudentProjectSubmission()
