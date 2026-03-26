@@ -111,4 +111,9 @@ class UserAccount extends Authenticatable
     {
         return $this->hasMany(SchoolAssessmentTypeWeight::class, 'user_id');
     }
+
+    public function SubjectPassingGradeCriteria()
+    {
+        return $this->hasMany(SubjectPassingGradeCriteria::class, 'user_id');
+    }
 }

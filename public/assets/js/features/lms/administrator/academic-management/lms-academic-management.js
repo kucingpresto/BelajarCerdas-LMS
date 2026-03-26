@@ -69,6 +69,7 @@ function managementAcademic() {
                     const lmsAssessmentTypeManagement = response.lmsAssessmentTypeManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
                     const lmsTeacherSubjectManagement = response.lmsTeacherSubjectManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
                     const lmsAssessmentWeightManagement = response.lmsAssessmentWeightManagement.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
+                    const lmsSubjectPassingGradeCriteria = response.lmsSubjectPassingGradeCriteria.replace(':schoolName', schoolName).replace(':schoolId', schoolId);
 
                     const academicManagementGroups = [
                         {
@@ -166,6 +167,19 @@ function managementAcademic() {
                             ],
                             link: {
                                 href: lmsTeacherSubjectManagement,
+                            }
+                        },
+
+                        {
+                            key: 'subject_passing_grade_criteria',
+                            title: 'Subject Passing Grade Criteria',
+                            icon: 'fa-solid fa-chart-line',
+                            description: 'Set minimum passing grade for each subject and grade level',
+                            items: [
+                                'Kelola KKM Mata Pelajaran',
+                            ],
+                            link: {
+                                href: lmsSubjectPassingGradeCriteria,
                             }
                         }
 

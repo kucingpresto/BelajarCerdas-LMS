@@ -343,6 +343,18 @@ Route::middleware([AuthMiddleware::class])->group(function () {
     // paginate
     Route::get('/lms/school-subscription/{schoolName}/{schoolId}/assessment-weight-management/paginate', [LmsController::class, 'paginateAssessmentWeight'])->name('lms.assessmentWeight.paginate');
 
+    // ROUTES SUBJECT PASSING GRADE CRITERIA MANAGEMENT
+    // views
+    Route::get('/lms/school-subscription/{schoolName}/{schoolId}/subject-passing-grade-criteria-management', [LmsController::class, 'subjectPassingGradeCriteria'])->name('lms.subjectPassingGradeCriteria.view');
+
+    // crud
+    Route::post('/lms/school-subscription/{schoolName}/{schoolId}/subject-passing-grade-criteria-management/store', [LmsController::class, 'subjectPassingGradeCriteriaStore'])->name('lms.subjectPassingGradeCriteria.store');
+    Route::post('/lms/school-subscription/{schoolName}/{schoolId}/subject-passing-grade-criteria-management/{subjectPassingGradeCriteriaId}/edit', [LmsController::class, 'subjectPassingGradeCriteriaEdit'])->name('lms.subjectPassingGradeCriteria.edit');
+    Route::post('/lms/school-subscription/{schoolName}/{schoolId}/subject-passing-grade-criteria-management/bulkupload-store', [LmsController::class, 'bulkUploadSubjectPassingGradeCriteria'])->name('lms.subjectPassingGradeCriteria.bulkUpload.store');
+
+    // paginate
+    Route::get('/lms/school-subscription/{schoolName}/{schoolId}/subject-passing-grade-criteria-management/paginate', [LmsController::class, 'paginateSubjectPassingGradeCriteria'])->name('lms.subjectPassingGradeCriteria.paginate');
+
     // ROUTES STUDENT LMS
     // components routes
     Route::get('/lms/{role}/{schoolName}/{schoolId}/curriculum/{curriculumId}/subject/{mapelId}/subject-progress', [StudentSubjectProgressController::class, 'index'])->name('lms.studentSubjectProgress.index');

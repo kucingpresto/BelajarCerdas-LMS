@@ -86,4 +86,10 @@ class Mapel extends Model
     {
         return $this->hasMany(SchoolAssessment::class, 'mapel_id');
     }
+
+    // SUBJECT PASSING GRADE CRITERIA
+    public function SubjectPassingGradeCriteria()
+    {
+        return $this->hasMany(SubjectPassingGradeCriteria::class, 'mapel_id');
+    }
 }

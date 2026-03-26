@@ -62,4 +62,10 @@ class Kelas extends Model
     {
         return $this->hasMany(LmsContent::class, 'kelas_id');
     }
+
+    // SUBJECT PASSING GRADE CRITERIA
+    public function SubjectPassingGradeCriteria()
+    {
+        return $this->hasMany(SubjectPassingGradeCriteria::class, 'kelas_id');
+    }
 }
