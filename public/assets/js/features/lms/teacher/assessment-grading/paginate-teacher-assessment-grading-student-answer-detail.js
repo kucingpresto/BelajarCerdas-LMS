@@ -35,12 +35,6 @@ function paginateAssessmentGradingStudentAnswer(selectedIndex = 0) {
 
                 let correctCount = 0;
 
-                const previousStudent = response.previousStudent;
-                const nextStudent = response.nextStudent;
-
-                const previousUrl = previousStudent ? `/lms/${role}/${schoolName}/${schoolId}/assessment-grading/${assessmentId}/student-list/${previousStudent}/scoring` : '#';
-                const nextUrl = nextStudent ? `/lms/${role}/${schoolName}/${schoolId}/assessment-grading/${assessmentId}/student-list/${nextStudent}/scoring` : '#';
-
                 const assessmentInfo = $('#header-assessment-info');
 
                 assessmentInfo.html(`
@@ -67,24 +61,6 @@ function paginateAssessmentGradingStudentAnswer(selectedIndex = 0) {
                                 </span>
 
                             </p>
-
-                        </div>
-
-                        <div class="flex flex-wrap gap-3 shrink-0">
-
-                            <a href="${previousStudent ? previousUrl : '#'}"
-                                class="flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg
-                                ${previousStudent ? 'bg-[#3B82F6]' : 'bg-gray-300 text-gray-500 pointer-events-none'}">
-                                <i class="fa-solid fa-chevron-left"></i>
-                                Previous Student
-                            </a>
-
-                            <a href="${nextStudent ? nextUrl : '#'}"
-                                class="flex items-center gap-2 text-sm font-bold px-4 py-2 rounded-lg
-                                ${nextStudent ? 'bg-[#43AB3C] text-white' : 'bg-gray-300 text-gray-500 pointer-events-none'}">
-                                Next Student
-                                <i class="fa-solid fa-chevron-right"></i>
-                            </a>
 
                         </div>
 

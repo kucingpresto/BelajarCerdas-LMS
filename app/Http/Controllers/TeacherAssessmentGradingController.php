@@ -162,7 +162,11 @@ class TeacherAssessmentGradingController extends Controller
 
     public function assessmentGradingStudentList($role, $schoolName, $schoolId, $assessmentId, $mode)
     {
-        return view('features.lms.teacher.assessment-grading.teacher-assessment-grading-student-list', compact('role', 'schoolName', 'schoolId', 'assessmentId', 'mode'));
+        $assessment = SchoolAssessment::with(['SchoolClass', 'Mapel', 'SchoolAssessmentType.AssessmentMode'])->findOrFail($assessmentId);
+
+        $isProject = $assessment->SchoolAssessmentType->AssessmentMode->code === 'project';
+
+        return view('features.lms.teacher.assessment-grading.teacher-assessment-grading-student-list', compact('role', 'schoolName', 'schoolId', 'assessmentId', 'mode', 'isProject'));
     }
 
     public function paginateAssessmentGradingStudentList(Request $request, $role, $schoolName, $schoolId, $assessmentId, $mode) 
@@ -173,17 +177,16 @@ class TeacherAssessmentGradingController extends Controller
 
         // ambil semua assessment (main + child)
         $allAssessmentIds = SchoolAssessment::where(function ($q) use ($rootAssessmentId) {
-            $q->where('id', $rootAssessmentId)
-            ->orWhere('parent_assessment_id', $rootAssessmentId);
+            $q->where('id', $rootAssessmentId)->orWhere('parent_assessment_id', $rootAssessmentId);
         })->pluck('id');
 
         $assessmentMap = SchoolAssessment::whereIn('id', $allAssessmentIds)->get()->keyBy('id');
 
         // STUDENTS
         $students = StudentSchoolClass::with(['UserAccount.StudentProfile'])->where('student_class_status', 'active')->where(function ($q) {
-            $q->whereNull('academic_action')->orWhere('academic_action', '');
+                $q->whereNull('academic_action')->orWhere('academic_action', '');
         })
-            ->where('school_class_id', $assessment->school_class_id)->when($request->filled('search_student'), function ($q) use ($request) {
+        ->where('school_class_id', $assessment->school_class_id)->when($request->filled('search_student'), function ($q) use ($request) {
             $q->whereHas('UserAccount.StudentProfile', function ($sub) use ($request) {
                 $sub->where('nama_lengkap', 'LIKE', '%' . $request->search_student . '%');
             });
@@ -191,29 +194,31 @@ class TeacherAssessmentGradingController extends Controller
 
         $studentIds = $students->pluck('student_id');
 
-        //  SUMMARY
-        $summaries = StudentAssessmentSummary::whereIn('student_id', $studentIds)->where('root_assessment_id', $rootAssessmentId)->get()->keyBy('student_id');
+        // SUMMARY
+        $summaries = StudentAssessmentSummary::whereIn('student_id', $studentIds)
+            ->where('root_assessment_id', $rootAssessmentId)
+            ->get()
+            ->keyBy('student_id');
 
         // ANSWERS
         $allAnswers = StudentAssessmentAnswer::whereIn('school_assessment_id', $allAssessmentIds)->whereIn('student_id', $studentIds)->where('status_answer', 'submitted')->get()->groupBy('student_id');
 
         $allProjects = StudentProjectSubmission::whereIn('school_assessment_id', $allAssessmentIds)->whereIn('student_id', $studentIds)->get()->groupBy('student_id');
 
-        //  KKM
+        // KKM
         $schoolYear = $assessment->SchoolClass?->tahun_ajaran;
-
         $kelasId = $assessment->SchoolClass?->kelas_id;
-
         $kkm = SubjectPassingGradeCriteria::where('mapel_id', $assessment->mapel_id)->where('kelas_id', $kelasId)->where('school_year', $schoolYear)->latest()->value('kkm_value');
 
         $type = $assessment->SchoolAssessmentType;
         $isRemedialAllowed = $type->is_remedial_allowed ?? false;
         $maxRemedialAttempt = $type->max_remedial_attempt ?? 0;
 
-        //  MAP DATA
-        $students = $students->map(function ($item) use ($allAnswers, $allProjects, $assessmentMap, $assessment, $summaries, $kkm, $isRemedialAllowed, $maxRemedialAttempt) {
-            $studentId = $item->student_id;
+        $isProject = $assessment->SchoolAssessmentType->AssessmentMode->code === 'project';
 
+        // MAP DATA
+        $students = $students->map(function ($item) use ($allAnswers, $allProjects, $assessmentMap, $assessment, $summaries, $kkm, $isRemedialAllowed, $maxRemedialAttempt, $isProject) {
+            $studentId = $item->student_id;
             $summary = $summaries[$studentId] ?? null;
 
             $answers = $allAnswers[$studentId] ?? collect();
@@ -221,16 +226,24 @@ class TeacherAssessmentGradingController extends Controller
 
             $submission = ($answers->count() > 0 || $projects->count() > 0) ? 'Submit' : 'Tidak Submit';
 
-            //  HITUNG NILAI PER ASSESSMENT
-            $grouped = $answers->groupBy('school_assessment_id');
+            // CEK SUSULAN DARI ANSWER
+            $susulanAssessmentIds = $assessmentMap->where('assessment_category', 'susulan')->pluck('id');
+
+            $hasSusulan = $answers->whereIn('school_assessment_id', $susulanAssessmentIds)->count() > 0;
+
+            // HITUNG NILAI PER ASSESSMENT
+            $assessmentIdsFromAnswers = $answers->pluck('school_assessment_id');
+            $assessmentIdsFromProjects = $projects->pluck('school_assessment_id');
+            $allAssessmentKeys = $assessmentIdsFromAnswers->merge($assessmentIdsFromProjects)->unique();
 
             $assessmentScores = [];
 
-            foreach ($grouped as $assessmentIdKey => $items) {
-
+            foreach ($allAssessmentKeys as $assessmentIdKey) {
+                $items = $answers->where('school_assessment_id', $assessmentIdKey);
                 $totalScore = round($items->sum('question_score'), 2);
 
-                if ($assessment->SchoolAssessmentType->AssessmentMode->code === 'project') {
+                // PROJECT SCORE
+                if ($isProject) {
                     $project = $projects->firstWhere('school_assessment_id', $assessmentIdKey);
                     if ($project) {
                         $totalScore += $project->score ?? 0;
@@ -238,7 +251,6 @@ class TeacherAssessmentGradingController extends Controller
                 }
 
                 $assessmentData = $assessmentMap[$assessmentIdKey] ?? null;
-
                 if ($assessmentData) {
                     $assessmentScores[] = [
                         'score' => $totalScore,
@@ -250,57 +262,64 @@ class TeacherAssessmentGradingController extends Controller
 
             $collection = collect($assessmentScores);
 
-            $remedialScores = $collection->where('assessment_category', 'remedial')->unique('assessment_id')->sortBy('assessment_id')->values();
+            $remedialScores = $collection
+                ->where('assessment_category', 'remedial')
+                ->unique('assessment_id')
+                ->sortBy('assessment_id')
+                ->values();
 
-            //  OUTPUT
+            // OUTPUT
             $item->remedial_attempts = $remedialScores->map(fn($r) => [
                 'score' => $r['score'],
                 'assessment_id' => $r['assessment_id'],
             ])->values();
 
-            //  SOURCE OF TRUTH = SUMMARY
-            $item->main_score = $summary->main_score ?? null;
-            $item->remedial_score = $summary->last_remedial_score ?? null;
-            $item->susulan_score = $summary->susulan_score ?? null;
-            $item->pengayaan_score = $summary->pengayaan_score ?? null;
+            // SOURCE OF TRUTH = SUMMARY
+            $item->main_score = $summary?->main_score;
+            $item->remedial_score = $summary?->last_remedial_score;
 
-            $item->remedial_count = $summary->remedial_count ?? 0;
+            $item->susulan_score = $summary?->susulan_score;
 
-            $item->score = $summary->final_score ?? 0;
-            $item->score_source = $summary->score_source ?? null;
+            $item->has_susulan = $hasSusulan;
 
-            //  LOGIC STATUS
-            $latestScore = $summary->last_remedial_score ?? $summary->susulan_score ?? $summary->main_score;
+            $item->pengayaan_score = $summary?->pengayaan_score;
 
-            $needRemedial = $isRemedialAllowed && !is_null($latestScore) && $latestScore < $kkm && ($summary->remedial_count ?? 0) < $maxRemedialAttempt;
+            $item->remedial_count = $summary?->remedial_count ?? 0;
+            $item->score = $summary?->final_score ?? 0;
 
-            $needSusulan = is_null($summary?->main_score) && is_null($summary?->susulan_score);
+            // LOGIC STATUS
+            $latestScore = $summary?->last_remedial_score ?? $summary?->susulan_score ?? $summary?->main_score;
+
+            $needRemedial = !$isProject && $isRemedialAllowed && !is_null($latestScore) && $latestScore < $kkm && ($summary->remedial_count ?? 0) < $maxRemedialAttempt;
+
+            $needSusulan = !$isProject && is_null($summary?->main_score) && !$hasSusulan;
 
             $hasPengayaan = !is_null($summary?->pengayaan_score);
-            $needPengayaan = ($summary->final_score ?? 0) >= $kkm && !$hasPengayaan;
+
+            $needPengayaan = !$isProject && ($summary?->final_score ?? 0) >= $kkm && !$hasPengayaan;
 
             // grading status
             $gradingStatus = null;
-            if ($answers->count() > 0) {
-                $pending = $answers->where('grading_status', 'pending')->count();
+            if ($answers->count() > 0 || ($isProject && $projects->count() > 0)) {
+                $pending = $answers->where('grading_status', 'pending')->count()
+                    + $projects->where('grading_status', 'pending')->count();
+
                 $gradingStatus = $pending > 0 ? 'Sementara' : 'Final';
             }
 
             // assign
             $item->submission_status = $submission;
             $item->grading_status = $gradingStatus;
-
             $item->need_remedial = $needRemedial;
             $item->need_susulan = $needSusulan;
             $item->has_pengayaan = $hasPengayaan;
             $item->need_pengayaan = $needPengayaan;
-
             $item->kkm = $kkm;
 
             return $item;
         });
 
-        //  FILTER MODE
+        // FILTER MODE
         if ($mode === 'remedial') {
             $students = $students->filter(fn($s) => $s->need_remedial || $s->remedial_score !== null)->values();
         } elseif ($mode === 'susulan') {
@@ -312,7 +331,6 @@ class TeacherAssessmentGradingController extends Controller
         return response()->json([
             'data' => $students,
             'assessment' => $assessment,
-
             'statistics' => [
                 'total_students' => $students->count(),
                 'submitted' => $students->where('submission_status', 'Submit')->count(),
@@ -320,16 +338,14 @@ class TeacherAssessmentGradingController extends Controller
                 'pending_score' => $students->where('grading_status', 'Sementara')->count(),
                 'final_score' => $students->where('grading_status', 'Final')->count(),
             ],
-
             'global_action' => [
-                'can_remedial' => $students->where('need_remedial', true)->count() > 0,
-                'can_susulan' => $students->where('need_susulan', true)->count() > 0,
-                'can_pengayaan' => $students->where('need_pengayaan', true)->count() > 0,
+                'can_remedial' => !$isProject && $students->where('need_remedial', true)->count() > 0,
+                'can_susulan' => !$isProject && $students->where('need_susulan', true)->count() > 0,
+                'can_pengayaan' => !$isProject && $students->where('need_pengayaan', true)->count() > 0,
                 'total_pengayaan_students' => $students->where('need_pengayaan', true)->count(),
                 'total_remedial_students' => $students->where('need_remedial', true)->count(),
                 'total_susulan_students' => $students->where('need_susulan', true)->count(),
             ],
-
             'assessmentGradingStudentAnswer' =>
                 '/lms/:role/:schoolName/:schoolId/assessment-grading/:assessmentId/mode/:mode/student-list/:studentId/scoring'
         ]);
@@ -351,7 +367,19 @@ class TeacherAssessmentGradingController extends Controller
 
     public function paginateAssessmentGradingStudentAnswer($role, $schoolName, $schoolId, $assessmentId, $mode, $studentId)
     {
-        $assessment = SchoolAssessment::with(['SchoolClass', 'Mapel'])->where('id', $assessmentId)->where('assessment_category', $mode)->firstOrFail();
+        $baseAssessment = SchoolAssessment::findOrFail($assessmentId);
+
+        $rootAssessmentId = $baseAssessment->parent_assessment_id ?? $baseAssessment->id;
+
+        $assessment = SchoolAssessment::with(['SchoolClass', 'Mapel'])->where('id', $assessmentId)->where('assessment_category', $mode)->first();
+
+        if (!$assessment) {
+            $assessment = SchoolAssessment::with(['SchoolClass', 'Mapel'])
+                ->where(function ($q) use ($rootAssessmentId) {
+                    $q->where('id', $rootAssessmentId)
+                    ->orWhere('parent_assessment_id', $rootAssessmentId);
+            })->where('assessment_category', $mode)->orderByDesc('id')->firstOrFail();
+        }
 
         // fallback ke parent jika tidak ada soal
         $realAssessmentId = $assessment->id;
@@ -362,6 +390,7 @@ class TeacherAssessmentGradingController extends Controller
             $realAssessmentId = $assessment->parent_assessment_id;
         }
 
+        // ambil soal + jawaban
         $schoolAssessmentQuestion = SchoolAssessmentQuestion::with([
             'LmsQuestionBank.LmsQuestionOption',
             'StudentAssessmentAnswer' => function ($query) use ($studentId, $assessment) {
@@ -370,28 +399,33 @@ class TeacherAssessmentGradingController extends Controller
             }
         ])->where('school_assessment_id', $realAssessmentId)->get();
 
+        // handle kalau soal kosong
+        if ($schoolAssessmentQuestion->isEmpty()) {
+            return response()->json([
+                'data' => [],
+                'questionsAnswer' => [],
+                'assessment' => $assessment,
+                'student' => null,
+                'previousStudent' => null,
+                'nextStudent' => null
+            ]);
+        }
+
+        // REMEDIAL LOGIC
         if ($assessment->assessment_category === 'remedial') {
 
-            // root id
             $rootAssessmentId = $assessment->parent_assessment_id ?? $assessment->id;
 
-            // semua assessment dalam chain
             $allAssessments = SchoolAssessment::where(function ($q) use ($rootAssessmentId) {
                 $q->where('id', $rootAssessmentId)
                 ->orWhere('parent_assessment_id', $rootAssessmentId);
             })->orderBy('id')->get();
 
-            // ambil hanya assessment sebelum yang sekarang
             $previousAssessments = $allAssessments->where('id', '<', $assessment->id);
 
-            // ambil semua jawaban siswa
-            $allAnswers = StudentAssessmentAnswer::where('student_id', $studentId)
-                ->whereIn('school_assessment_id', $allAssessments->pluck('id'))
-                ->where('status_answer', 'submitted')
-                ->get()
-                ->groupBy('school_assessment_id');
+            $allAnswers = StudentAssessmentAnswer::where('student_id', $studentId)->whereIn('school_assessment_id', $allAssessments->pluck('id'))->where('status_answer', 'submitted')->get()
+            ->groupBy('school_assessment_id');
 
-            // ambil jawaban terakhir tiap soal
             $latestAnswerPerQuestion = [];
 
             foreach ($previousAssessments as $prevAssessment) {
@@ -401,38 +435,33 @@ class TeacherAssessmentGradingController extends Controller
                 foreach ($answers as $ans) {
                     $qId = $ans->school_assessment_question_id;
 
-                    // overwrite = ambil attempt terakhir
                     $latestAnswerPerQuestion[$qId] = $ans;
                 }
             }
 
-            // FILTER SOAL
             $schoolAssessmentQuestion = $schoolAssessmentQuestion->filter(function ($q) use ($latestAnswerPerQuestion) {
 
                 $answer = $latestAnswerPerQuestion[$q->id] ?? null;
 
-                // tidak pernah jawab → masuk
                 if (!$answer) return true;
 
-                // salah → masuk
                 if ($answer->question_score <= 0) return true;
 
-                // sudah benar → skip
                 return false;
 
             })->values();
         }
 
-        // STUDENT ANSWER
+        // STUDENT ANSWER GLOBAL
         $assessmentIds = [$assessment->id];
 
-        // kalau punya parent → ambil juga
         if ($assessment->parent_assessment_id) {
             $assessmentIds[] = $assessment->parent_assessment_id;
         }
 
-        // kalau mau lebih proper (ambil semua child juga)
-        $childIds = SchoolAssessment::where('parent_assessment_id', $assessment->parent_assessment_id ?? $assessment->id)->pluck('id')->toArray();
+        $childIds = SchoolAssessment::where('parent_assessment_id', $assessment->parent_assessment_id ?? $assessment->id)
+            ->pluck('id')
+            ->toArray();
 
         $assessmentIds = array_unique(array_merge($assessmentIds, $childIds));
 
@@ -445,6 +474,7 @@ class TeacherAssessmentGradingController extends Controller
                 ];
             });
 
+        // STUDENT DATA
         $student = UserAccount::with(['studentProfile', 'StudentSchoolClass.SchoolClass'])->findOrFail($studentId);
 
         $students = StudentSchoolClass::where('school_class_id', $assessment->school_class_id)
@@ -452,22 +482,26 @@ class TeacherAssessmentGradingController extends Controller
             ->get()
             ->sortBy(function ($item) {
                 return strtolower($item->UserAccount->StudentProfile->nama_lengkap ?? '');
-            })
-            ->pluck('student_id')
-            ->values();
+            });
 
-        $currentIndex = $students->search($studentId);
+        $studentIds = $students->pluck('student_id');
 
-        $previousStudent = $students[$currentIndex - 1] ?? null;
-        $nextStudent = $students[$currentIndex + 1] ?? null;
+        $allAssessmentIds = SchoolAssessment::where(function ($q) use ($rootAssessmentId) {
+            $q->where('id', $rootAssessmentId)
+            ->orWhere('parent_assessment_id', $rootAssessmentId);
+        })->pluck('id');
+
+        $allAnswers = StudentAssessmentAnswer::whereIn('school_assessment_id', $allAssessmentIds)
+            ->whereIn('student_id', $studentIds)
+            ->where('status_answer', 'submitted')
+            ->get()
+            ->groupBy('student_id');
 
         return response()->json([
             'data' => $schoolAssessmentQuestion,
             'questionsAnswer' => $questionsAnswer,
             'assessment' => $assessment,
             'student' => $student,
-            'previousStudent' => $previousStudent,
-            'nextStudent' => $nextStudent
         ]);
     }
 
@@ -560,19 +594,10 @@ class TeacherAssessmentGradingController extends Controller
 
         $student = UserAccount::with(['studentProfile', 'StudentSchoolClass.SchoolClass'])->findOrFail($studentId);
 
-        $students = StudentSchoolClass::where('school_class_id',$assessment->school_class_id)->orderBy('student_id')->pluck('student_id')->values();
-
-        $currentIndex = $students->search($studentId);
-
-        $previousStudent = $students[$currentIndex - 1] ?? null;
-        $nextStudent = $students[$currentIndex + 1] ?? null;
-
         return response()->json([
             'assessment' => $assessment,
             'student' => $student,
             'submission' => $submission,
-            'previousStudent' => $previousStudent,
-            'nextStudent' => $nextStudent
         ]);
     }
 
@@ -614,6 +639,10 @@ class TeacherAssessmentGradingController extends Controller
             'grading_status' => 'graded',
             'teacher_feedback' => $request->teacher_feedback,
         ]);
+
+        $assessment = SchoolAssessment::findOrFail($assessmentId);
+
+        $this->summaryService->updateStudentAssessmentSummary($studentId, $assessment);
 
         return response()->json([
             'status' => 'success',

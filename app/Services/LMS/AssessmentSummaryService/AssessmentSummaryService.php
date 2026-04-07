@@ -5,6 +5,7 @@ namespace App\Services\LMS\AssessmentSummaryService;
 use App\Models\SchoolAssessment;
 use App\Models\StudentAssessmentAnswer;
 use App\Models\StudentAssessmentSummary;
+use App\Models\StudentProjectSubmission;
 use App\Models\SubjectPassingGradeCriteria;
 
 class AssessmentSummaryService
@@ -30,15 +31,24 @@ public function updateStudentAssessmentSummary($studentId, $assessment)
     $lastRemedialAssessmentId = null;
 
     foreach ($assessments as $a) {
+
         $studentAnswers = $answers->get($a->id);
 
-        // skip kalau belum pernah dikerjakan sama sekali
-        if (!$studentAnswers || $studentAnswers->count() === 0) {
+        // ambil project submission
+        $project = StudentProjectSubmission::where('student_id', $studentId)->where('school_assessment_id', $a->id)->orderByDesc('id')->first();
+
+        // skip kalau tidak ada answer DAN tidak ada project
+        if ((!$studentAnswers || $studentAnswers->count() === 0) && !$project) {
             continue;
         }
 
-        //  FIX: rounding konsisten 2 decimal
-        $totalScore = round($studentAnswers->sum('question_score'), 2);
+        // default score dari answer
+        $totalScore = round($studentAnswers?->sum('question_score') ?? 0, 2);
+
+        // override kalau project
+        if ($a->SchoolAssessmentType->AssessmentMode->code === 'project') {
+            $totalScore = $project->score !== null ? round($project->score, 2) : 0;
+        }
 
         switch ($a->assessment_category) {
             case 'main':

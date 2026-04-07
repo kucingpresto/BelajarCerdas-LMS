@@ -29,10 +29,14 @@
                                 <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nama</th>
                                 <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Status Pengerjaan</th>
                                 <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Awal</th>
-                                <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Susulan</th>
-                                <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Remedial</th>
+                                @if (!$isProject)
+                                    <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Susulan</th>
+                                    <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Remedial</th>
+                                @endif
                                 <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Akhir</th>
-                                <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Pengayaan</th>
+                                @if (!$isProject)
+                                    <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Nilai Pengayaan</th>
+                                @endif
                                 <th class="border border-gray-300 px-3 py-2 opacity-70 text-xs">Status Penilaian</th>
                             </tr>
                         @elseif ($mode === 'remedial')

@@ -108,6 +108,7 @@ function paginateAssessmentGradingStudentList(search_student = null) {
                 const global = response.global_action;
 
                 actionButtons.empty();
+                const isProject = assessment.school_assessment_type?.assessment_mode?.code === 'project';
 
                 if (mode === 'main') {
                     actionButtons.html(`
@@ -216,33 +217,38 @@ function paginateAssessmentGradingStudentList(search_student = null) {
                                             ` : '-'}
                                         </td>
 
-                                        <!-- SUSULAN -->
-                                        <td class="border border-gray-300 px-3 py-2 text-center">
-                                            ${item.susulan_score !== null ? `
-                                                <a href="${buildUrl('susulan', item.student_id, item)}" class="text-orange-500 font-bold hover:underline" title="Lihat detail susulan">
-                                                    ${item.susulan_score}
-                                                </a>
-                                            ` : '-'}
-                                        </td>
+                                        ${!isProject ? `
+                                            <!-- SUSULAN -->
+                                            <td class="border border-gray-300 px-3 py-2 text-center">
+                                                ${item.susulan_score !== null ? `
+                                                    <a href="${buildUrl('susulan', item.student_id, item)}" class="text-orange-500 font-bold hover:underline" title="Lihat detail susulan">
+                                                        ${item.susulan_score}
+                                                    </a>
+                                                ` : '-'}
+                                            </td>
 
-                                        <!-- REMEDIAL -->
-                                        <td class="border border-gray-300 px-3 py-2 text-center">
-                                            ${renderRemedial(item)}
-                                        </td>
+                                            <!-- REMEDIAL -->
+                                            <td class="border border-gray-300 px-3 py-2 text-center">
+                                                ${renderRemedial(item)}
+                                            </td>
+                                        ` : ``}
 
                                         <!-- FINAL SCORE -->
                                         <td class="border border-gray-300 px-3 py-2 text-center font-bold">
                                             ${item.score ?? 0}
                                         </td>
 
-                                        <!-- PENGAYAAN -->
-                                        <td class="border border-gray-300 px-3 py-2 text-center">
-                                            ${item.pengayaan_score !== null ? `
-                                                <a href="${buildUrl('pengayaan', item.student_id, item)}" class="text-green-600 font-bold hover:underline" title="Lihat detail pengayaan">
-                                                    ${item.pengayaan_score}
-                                                </a>
-                                            ` : '-'}
-                                        </td>
+                                        ${!isProject ? `
+                                            <!-- PENGAYAAN -->
+                                            <td class="border border-gray-300 px-3 py-2 text-center">
+                                                ${item.pengayaan_score !== null ? `
+                                                    <a href="${buildUrl('pengayaan', item.student_id, item)}" class="text-green-600 font-bold hover:underline" title="Lihat detail pengayaan">
+                                                        ${item.pengayaan_score}
+                                                    </a>
+                                                ` : '-'}
+                                            </td>
+
+                                        ` : ``}
 
                                         <!-- STATUS -->
                                         <td class="border border-gray-300 px-3 py-2 text-center">

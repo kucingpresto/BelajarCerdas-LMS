@@ -1,6 +1,6 @@
 @include('components/sidebar-beranda', [
     'headerSideNav' => 'Scoring',
-    'linkBackButton' => route('lms.assessmentGradingStudentList.view', [$role, $schoolName, $schoolId, $assessmentId]),
+    'linkBackButton' => route('lms.assessmentGradingStudentList.view', [$role, $schoolName, $schoolId, $assessmentId, 'main']),
     'backButton' => "<i class='fa-solid fa-chevron-left'></i>",
 ]);
 

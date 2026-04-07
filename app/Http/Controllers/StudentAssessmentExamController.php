@@ -903,6 +903,7 @@ class StudentAssessmentExamController extends Controller
 
     public function studentProjectSubmission(Request $request, $role, $schoolName, $schoolId, $curriculumId, $mapelId, $assessmentTypeId, $semester, $assessmentId)
     {
+        $userId = Auth::id();
         $assessment = SchoolAssessment::findOrFail($assessmentId);
 
         $isExpired = now()->greaterThan($assessment->end_date);
@@ -977,6 +978,8 @@ class StudentAssessmentExamController extends Controller
             ],
             $data
         );
+
+        $this->summaryService->updateStudentAssessmentSummary($userId, $assessment);
 
         return response()->json([
             'status' => 'success',
