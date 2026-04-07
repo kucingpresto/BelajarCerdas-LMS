@@ -23,12 +23,9 @@ class RedirectIfAuthenticated
 
         $response = $next($request);
 
-        // Rekonstruksi response agar bisa ditambahkan header
-        $response = response($response->getContent(), $response->getStatusCode(), $response->headers->all());
-
-        $response->header('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
-        $response->header('Pragma', 'no-cache');
-        $response->header('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
+        $response->headers->set('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+        $response->headers->set('Pragma', 'no-cache');
+        $response->headers->set('Expires', 'Sat, 01 Jan 1990 00:00:00 GMT');
 
         return $response;
     }
