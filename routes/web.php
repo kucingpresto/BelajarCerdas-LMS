@@ -507,6 +507,19 @@ Route::middleware([AuthMiddleware::class])->group(function () {
 
     // gradebook export
     Route::get('/lms/{role}/{schoolName}/{schoolId}/teacher-class-list/teacher-gradebook/subject-teacher/{subjectTeacherId}/export', [TeacherGradebookController::class, 'exportGradebook']);
+
+    // Information
+    // Calender
+    Route::get('/lms/{role}/{schoolName}/{schoolId}/teacher-academic-calendar', [App\Http\Controllers\TeacherInformationController::class, 'calendarView'])->name('lms.teacherCalendar.view');
+    Route::post('/lms/{role}/{schoolName}/{schoolId}/teacher-academic-calendar/save', [App\Http\Controllers\TeacherInformationController::class, 'saveCalendar'])->name('lms.teacherCalendar.save');
+
+
+    Route::get('/lms/{role}/{schoolName}/{schoolId}/teacher-schedule', [App\Http\Controllers\TeacherInformationController::class, 'scheduleView'])->name('lms.teacherSchedule.view');
+    Route::get('/lms/{role}/{schoolName}/{schoolId}/teacher-polling', [App\Http\Controllers\TeacherInformationController::class, 'pollingView'])->name('lms.teacherPolling.view');
+
+    //ROUTE STUDENTS
+    //Dashboard
+    Route::get('/lms/student/dashboard', [App\Http\Controllers\StudentDashboardController::class, 'index'])->name('lms.student.dashboard');
 });
 
 // ROUTES SCHOOL PARTNER
